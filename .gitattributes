@@ -1,0 +1,18 @@
+# Принудительно LF для всех текстовых файлов
+* text eol=lf
+
+# Настройки для специфичных типов
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Для SQL, YAML, конфигов и Markdown всегда UTF-8 LF
+*.yml text eol=lf
+*.yaml text eol=lf
+*.sql text eol=lf
+*.env text eol=lf
+*.md text eol=lf
+*.sh text eol=lf
+*.conf text eol=lf
+*.ini text eol=lf
+*.make text eol=lf
