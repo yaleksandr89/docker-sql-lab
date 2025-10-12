@@ -1,0 +1,19 @@
+# Системные / IDE
+.idea/
+.vscode/
+*.iml
+
+# Docker
+data/
+backup/
+.env
+.docker.env
+.docker.env.example
+
+# Логи
+*.log
+*.pid
+
+# OS / Temp
+.DS_Store
+Thumbs.db

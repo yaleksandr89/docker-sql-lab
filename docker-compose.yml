@@ -1,0 +1,49 @@
+# Без поля version (современный формат Compose)
+services:
+  mysql:
+    image: mysql:${MYSQL_VERSION}
+    container_name: ${MYSQL_CONTAINER}
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      # Фиксируем таймзону, чтобы результаты datetme/interval были повторяемы
+      TZ: Europe/Moscow
+    ports:
+      - "${MYSQL_PORT}:3306"
+      - "${MYSQL_XPORT}:33060"
+    volumes:
+      - ${MYSQL_DATA_DIR}:/var/lib/mysql
+      - ${MYSQL_CONF_FILE}:/etc/mysql/conf.d/z-stepik.cnf:ro
+      - ${INITDB_DIR}:/docker-entrypoint-initdb.d:ro
+    command: [
+      "--default-authentication-plugin=caching_sha2_password",
+      "--character-set-server=utf8mb4",
+      "--collation-server=utf8mb4_0900_ai_ci"
+    ]
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  adminer:
+    image: adminer:${ADMINER_VERSION}
+    container_name: ${ADMINER_CONTAINER}
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      # Чёткая TZ для одинаковых дат/времени
+      TZ: Europe/Moscow
+    ports:
+      - "${ADMINER_PORT}:8080"
+
+# Подключение к внешней сети (если нужно)
+#networks:
+#  default:
+#    name: ${EXTERNAL_NETWORK}
+#    external: true
