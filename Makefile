@@ -4,7 +4,7 @@
 ###############################################################################
 
 SHELL = bash
-.PHONY: init init-setup pull build config up down reset restart in log mysql sh dump restore
+.PHONY: init init-setup samples pull build config up down clean reset restart in log mysql sh dump restore
 
 # -----------------------------------------------------------------------------
 # 🏗️  Основные переменные
@@ -134,6 +134,64 @@ log:
 	@test -n "$(CONTAINER)" || (echo "❗ Не указан контейнер. Пример: make log mysql" && exit 1)
 	@echo "📜 Просмотр логов контейнера $(CONTAINER)..."
 	$(COMPOSE_COMMAND) logs -f $(CONTAINER)
+
+# -----------------------------------------------------------------------------
+# 🎓 Учебные базы данных
+# -----------------------------------------------------------------------------
+
+SAMPLES_TMP_DIR := .tmp/mysql-samples
+WORLD_URL := https://downloads.mysql.com/docs/world-db.zip
+SAKILA_URL := https://downloads.mysql.com/docs/sakila-db.zip
+
+samples:
+	@echo "📚 Скачиваем учебные базы World и Sakila..."
+	@echo "📚 Установленные учебные базы:"
+	@echo "   world     — основы SQL и простые JOIN"
+	@echo "   sakila    — сложные запросы и аналитика"
+	@echo "   employees — индексы и оптимизация"
+	@command -v curl >/dev/null || (echo "❗ Требуется curl" && exit 1)
+	@command -v unzip >/dev/null || (echo "❗ Требуется unzip" && exit 1)
+
+	@rm -rf "$(SAMPLES_TMP_DIR)"
+	@mkdir -p "$(SAMPLES_TMP_DIR)/world" "$(SAMPLES_TMP_DIR)/sakila" "$(INITDB_DIR)"
+
+	@curl -fL "$(WORLD_URL)" \
+		-o "$(SAMPLES_TMP_DIR)/world-db.zip"
+
+	@curl -fL "$(SAKILA_URL)" \
+		-o "$(SAMPLES_TMP_DIR)/sakila-db.zip"
+
+	@unzip -q "$(SAMPLES_TMP_DIR)/world-db.zip" \
+		-d "$(SAMPLES_TMP_DIR)/world"
+
+	@unzip -q "$(SAMPLES_TMP_DIR)/sakila-db.zip" \
+		-d "$(SAMPLES_TMP_DIR)/sakila"
+
+	@cp "$(SAMPLES_TMP_DIR)/world/world-db/world.sql" \
+		"$(INITDB_DIR)/010_world.sql"
+
+	@cp "$(SAMPLES_TMP_DIR)/sakila/sakila-db/sakila-schema.sql" \
+		"$(INITDB_DIR)/020_sakila_schema.sql"
+
+	@cp "$(SAMPLES_TMP_DIR)/sakila/sakila-db/sakila-data.sql" \
+		"$(INITDB_DIR)/021_sakila_data.sql"
+
+	@rm -rf "$(SAMPLES_TMP_DIR)"
+
+	@echo "✅ Учебные базы подготовлены:"
+	@echo "   • world"
+	@echo "   • sakila"
+	@echo
+	@echo "⚠️  SQL-файлы выполнятся только при создании пустого каталога MySQL."
+	@echo "   Для переинициализации: make clean && make up"
+
+clean:
+	@echo "🧹 Останавливаем контейнеры..."
+	@$(COMPOSE_COMMAND) down --remove-orphans
+	@echo "🗑️  Удаляем данные MySQL: $(MYSQL_DATA_DIR)"
+	@rm -rf "$(MYSQL_DATA_DIR)"
+	@mkdir -p "$(MYSQL_DATA_DIR)"
+	@echo "✅ MySQL будет инициализирован заново при следующем make up"
 
 ###############################################################################
 # ✅ Конец Makefile
