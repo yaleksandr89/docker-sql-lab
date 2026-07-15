@@ -1,4 +1,3 @@
-# Без поля version (современный формат Compose)
 services:
   mysql:
     image: mysql:${MYSQL_VERSION}
@@ -7,24 +6,21 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-      # Фиксируем таймзону, чтобы результаты datetme/interval были повторяемы
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
       TZ: Europe/Moscow
     ports:
       - "${MYSQL_PORT}:3306"
-      - "${MYSQL_XPORT}:33060"
     volumes:
       - ${MYSQL_DATA_DIR}:/var/lib/mysql
       - ${MYSQL_CONF_FILE}:/etc/mysql/conf.d/z-stepik.cnf:ro
       - ${INITDB_DIR}:/docker-entrypoint-initdb.d:ro
-    command: [
-      "--default-authentication-plugin=caching_sha2_password",
-      "--character-set-server=utf8mb4",
-      "--collation-server=utf8mb4_0900_ai_ci"
-    ]
+    command:
+      - --default-authentication-plugin=caching_sha2_password
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_0900_ai_ci
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
+      test: 'MYSQL_PWD="$${MYSQL_ROOT_PASSWORD}" mysqladmin ping -h 127.0.0.1 -uroot --silent'
       interval: 5s
       timeout: 3s
       retries: 30
@@ -37,13 +33,13 @@ services:
       mysql:
         condition: service_healthy
     environment:
-      # Чёткая TZ для одинаковых дат/времени
+      ADMINER_DEFAULT_SERVER: mysql
       TZ: Europe/Moscow
     ports:
       - "${ADMINER_PORT}:8080"
 
-# Подключение к внешней сети (если нужно)
-#networks:
-#  default:
-#    name: ${EXTERNAL_NETWORK}
-#    external: true
+# Подключение к внешней сети при необходимости.
+# networks:
+#   default:
+#     name: ${EXTERNAL_NETWORK}
+#     external: true

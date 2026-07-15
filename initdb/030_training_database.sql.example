@@ -1,0 +1,120 @@
+-- Шаблон добавления новой учебной базы.
+--
+-- Файл заканчивается на .sql.example, поэтому MySQL entrypoint
+-- не выполняет его автоматически.
+--
+-- ============================================================================
+-- Вариант 1. Добавить базу при следующей чистой инициализации
+-- ============================================================================
+--
+-- Скопируйте шаблон:
+--
+--   cp initdb/030_training_database.sql.example initdb/030_shop.sql
+--
+-- Замените во всём файле:
+--
+--   training_database -> shop
+--
+-- Затем выполните полный сброс:
+--
+--   make reinit-mysql CONFIRM=1
+--
+-- При чистой инициализации порядок будет таким:
+--
+--   001_demo.sql
+--   010_world.sql
+--   020_sakila_schema.sql
+--   021_sakila_data.sql
+--   030_shop.sql
+--   090_grant_training_access.sh
+--   099_check_training_access.sh
+--
+-- Grant-скрипт обнаружит новую базу shop автоматически.
+--
+-- ============================================================================
+-- Вариант 2. Добавить базу в уже работающий MySQL без удаления данных
+-- ============================================================================
+--
+-- Подготовьте файл:
+--
+--   cp initdb/030_training_database.sql.example initdb/030_shop.sql
+--
+-- Отредактируйте его и выполните:
+--
+--   make mysql-import FILE=initdb/030_shop.sql
+--
+-- Команда:
+--
+--   1. импортирует SQL от имени root;
+--   2. повторно выдаст DB_USER права на все учебные базы;
+--   3. проверит доступ учебного пользователя.
+--
+-- ============================================================================
+-- Вариант 3. Добавить сторонний SQL dump
+-- ============================================================================
+--
+-- Если dump уже содержит:
+--
+--   CREATE DATABASE ...
+--   USE ...
+--
+-- его можно импортировать напрямую:
+--
+--   make mysql-import FILE=/path/to/database.sql
+--
+-- Если dump содержит только CREATE TABLE / INSERT, добавьте в начало:
+--
+--   CREATE DATABASE IF NOT EXISTS `shop`
+--       CHARACTER SET utf8mb4
+--       COLLATE utf8mb4_0900_ai_ci;
+--
+--   USE `shop`;
+--
+-- ============================================================================
+-- Вариант 4. Разделить схему и данные на несколько файлов
+-- ============================================================================
+--
+-- Можно создать:
+--
+--   initdb/030_shop_schema.sql
+--   initdb/031_shop_data.sql
+--
+-- Главное требование: оба файла должны выполняться раньше
+-- 090_grant_training_access.sh.
+--
+-- ============================================================================
+-- Пример содержимого учебной базы
+-- ============================================================================
+
+CREATE DATABASE IF NOT EXISTS `training_database`
+    CHARACTER SET utf8mb4
+    COLLATE utf8mb4_0900_ai_ci;
+
+USE `training_database`;
+
+CREATE TABLE IF NOT EXISTS example_categories
+(
+    id   BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100) NOT NULL UNIQUE
+) ENGINE = InnoDB;
+
+CREATE TABLE IF NOT EXISTS example_items
+(
+    id          BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    category_id BIGINT UNSIGNED NOT NULL,
+    name        VARCHAR(255) NOT NULL,
+    price       DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+    created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_example_items_category
+        FOREIGN KEY (category_id)
+        REFERENCES example_categories (id)
+) ENGINE = InnoDB;
+
+INSERT IGNORE INTO example_categories (id, name)
+VALUES (1, 'Books'),
+       (2, 'Electronics');
+
+INSERT IGNORE INTO example_items (id, category_id, name, price)
+VALUES (1, 1, 'SQL Training Book', 19.90),
+       (2, 2, 'Mechanical Keyboard', 79.90);
