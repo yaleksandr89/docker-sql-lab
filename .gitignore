@@ -16,3 +16,6 @@ backup/
 # OS / Temp
 .DS_Store
 Thumbs.db
+
+# Временные файлы загрузки учебных баз
+.tmp/
