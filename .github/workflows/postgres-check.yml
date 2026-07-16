@@ -1,0 +1,121 @@
+name: PostgreSQL check
+
+on:
+  pull_request:
+    branches:
+      - master
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  postgres-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Show Docker versions
+        run: |
+          set -Eeuo pipefail
+          docker --version
+          docker compose version
+
+      - name: Initialize environment
+        run: make init
+
+      - name: Validate Compose configuration
+        run: make config
+
+      - name: Prepare PostgreSQL sample
+        run: make samples-postgres
+
+      - name: Start only PostgreSQL
+        run: make up-postgres
+
+      - name: Confirm required PostgreSQL databases
+        run: |
+          set -Eeuo pipefail
+          set -a
+          source .docker.env
+          set +a
+
+          databases="$(
+            docker compose --env-file .docker.env -p "${COMPOSE_PROJECT_NAME}" \
+              exec -T postgres sh -c \
+              'PGPASSWORD="$POSTGRES_PASSWORD" psql --host=127.0.0.1 --username="$POSTGRES_USER" --dbname="$POSTGRES_DB" --tuples-only --no-align --command="SELECT string_agg(datname, chr(44) ORDER BY datname) FROM pg_catalog.pg_database WHERE datname IN (current_database(), chr(112) || chr(97) || chr(103) || chr(105) || chr(108) || chr(97));"' \
+              | tr -d '\r'
+          )"
+          test "${databases}" = "demo,pagila"
+
+      - name: Check PostgreSQL training access
+        run: make check-postgres-access
+
+      - name: Check PostgreSQL version
+        run: |
+          set -Eeuo pipefail
+          set -a
+          source .docker.env
+          set +a
+
+          postgres_version="$(
+            docker compose --env-file .docker.env -p "${COMPOSE_PROJECT_NAME}" \
+              exec -T postgres sh -c \
+              'PGPASSWORD="$POSTGRES_PASSWORD" psql --host=127.0.0.1 --username="$POSTGRES_USER" --dbname="$POSTGRES_DB" --tuples-only --no-align --command="SHOW server_version;"' \
+              | tr -d '\r'
+          )"
+          case "${postgres_version}" in
+            "${POSTGRES_VERSION}"*) ;;
+            *)
+              echo "Expected PostgreSQL ${POSTGRES_VERSION}, got ${postgres_version}" >&2
+              exit 1
+              ;;
+          esac
+
+      - name: Verify Pagila loader idempotency
+        run: |
+          set -Eeuo pipefail
+          set -a
+          source .docker.env
+          set +a
+
+          loader_output="$(
+            docker compose --env-file .docker.env -p "${COMPOSE_PROJECT_NAME}" \
+              exec -T postgres /docker-entrypoint-initdb.d/050_load_optional_samples.sh
+          )"
+          echo "${loader_output}"
+          grep -Fq 'already complete' <<< "${loader_output}"
+          grep -Fq 'skipping reload' <<< "${loader_output}"
+
+      - name: Restart only PostgreSQL
+        run: |
+          set -Eeuo pipefail
+          set -a
+          source .docker.env
+          set +a
+
+          docker compose --env-file .docker.env -p "${COMPOSE_PROJECT_NAME}" restart postgres
+          make wait-postgres
+
+      - name: Recheck PostgreSQL training access
+        run: make check-postgres-access
+
+      - name: Show PostgreSQL diagnostics
+        if: failure()
+        run: |
+          set -a
+          source .docker.env
+          set +a
+
+          docker compose --env-file .docker.env -p "${COMPOSE_PROJECT_NAME}" ps --all postgres || true
+          docker compose --env-file .docker.env -p "${COMPOSE_PROJECT_NAME}" logs --no-color postgres || true
+
+      - name: Stop containers
+        if: always()
+        run: make down

@@ -15,14 +15,15 @@ permissions:
 jobs:
   mysql-check:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Show Docker versions
         run: |
+          set -Eeuo pipefail
           docker --version
           docker compose version
 
@@ -32,28 +33,73 @@ jobs:
       - name: Validate Compose configuration
         run: make config
 
-      - name: Start MySQL and Adminer
-        run: make up
+      - name: Prepare MySQL samples
+        run: make samples-mysql
 
-      - name: Check databases and user access
-        run: make check
+      - name: Start only MySQL
+        run: make up-mysql
 
-      - name: Show container status
-        run: make status
-
-      - name: Show diagnostics
-        if: failure()
+      - name: Confirm required MySQL databases
         run: |
-          make status || true
-
+          set -Eeuo pipefail
           set -a
           source .docker.env
           set +a
 
-          docker compose \
-            --env-file .docker.env \
-            -p "${COMPOSE_PROJECT_NAME}" \
-            logs --no-color || true
+          databases="$(
+            docker compose --env-file .docker.env -p "${COMPOSE_PROJECT_NAME}" \
+              exec -T mysql sh -c \
+              'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql --user=root --batch --skip-column-names --execute="SELECT GROUP_CONCAT(SCHEMA_NAME ORDER BY SCHEMA_NAME) FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME IN (\"demo\", \"world\", \"sakila\");"' \
+              | tr -d '\r'
+          )"
+          test "${databases}" = "demo,sakila,world"
+
+      - name: Check MySQL training access
+        run: make check-mysql-access
+
+      - name: Check MySQL version
+        run: |
+          set -Eeuo pipefail
+          set -a
+          source .docker.env
+          set +a
+
+          mysql_version="$(
+            docker compose --env-file .docker.env -p "${COMPOSE_PROJECT_NAME}" \
+              exec -T mysql sh -c \
+              'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql --user=root --batch --skip-column-names --execute="SELECT VERSION();"' \
+              | tr -d '\r'
+          )"
+          case "${mysql_version}" in
+            "${MYSQL_VERSION}"*) ;;
+            *)
+              echo "Expected MySQL ${MYSQL_VERSION}, got ${mysql_version}" >&2
+              exit 1
+              ;;
+          esac
+
+      - name: Restart only MySQL
+        run: |
+          set -Eeuo pipefail
+          set -a
+          source .docker.env
+          set +a
+
+          docker compose --env-file .docker.env -p "${COMPOSE_PROJECT_NAME}" restart mysql
+          make wait-mysql
+
+      - name: Recheck MySQL training access
+        run: make check-mysql-access
+
+      - name: Show MySQL diagnostics
+        if: failure()
+        run: |
+          set -a
+          source .docker.env
+          set +a
+
+          docker compose --env-file .docker.env -p "${COMPOSE_PROJECT_NAME}" ps --all mysql || true
+          docker compose --env-file .docker.env -p "${COMPOSE_PROJECT_NAME}" logs --no-color mysql || true
 
       - name: Stop containers
         if: always()
