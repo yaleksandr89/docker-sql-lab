@@ -20,6 +20,7 @@ Thumbs.db
 # Временные файлы загрузки учебных баз
 .tmp/
 
-# Локально загруженные optional samples; каталог сохраняется через .gitkeep
+# Локально загруженные optional samples; через .gitkeep сохраняется только MySQL-каталог
 samples/mysql/*.sql
 !samples/mysql/.gitkeep
+samples/postgres/*.sql

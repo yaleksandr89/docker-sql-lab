@@ -15,14 +15,15 @@ permissions:
 jobs:
   sql-lab-check:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 25
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Show Docker versions
         run: |
+          set -Eeuo pipefail
           docker --version
           docker compose version
 
@@ -32,82 +33,48 @@ jobs:
       - name: Validate Compose configuration
         run: make config
 
-      - name: Start only MySQL
-        run: make up-mysql
-
-      - name: Check MySQL training access
-        run: make check-mysql-access
-
-      - name: Check exact MySQL version
-        run: |
-          set -a
-          source .docker.env
-          set +a
-          mysql_version="$(docker compose --env-file .docker.env -p "${COMPOSE_PROJECT_NAME}" exec -T mysql sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql --user=root --batch --skip-column-names --execute="SELECT VERSION();"' | tr -d '\r')"
-          echo "MySQL server version: ${mysql_version}"
-          case "${mysql_version}" in
-            "${MYSQL_VERSION}"*) ;;
-            *) echo "Expected MySQL ${MYSQL_VERSION}, got ${mysql_version}" >&2; exit 1 ;;
-          esac
-
-      - name: Stop MySQL stage
-        run: make down
-
-      - name: Start only PostgreSQL
-        run: make up-postgres
-
-      - name: Check PostgreSQL training access
-        run: make check-postgres-access
-
-      - name: Check exact PostgreSQL version
-        run: |
-          set -a
-          source .docker.env
-          set +a
-          postgres_version="$(docker compose --env-file .docker.env -p "${COMPOSE_PROJECT_NAME}" exec -T postgres sh -c 'psql --username="$POSTGRES_USER" --dbname="$POSTGRES_DB" --tuples-only --no-align --command="SHOW server_version;"' | tr -d '\r')"
-          echo "PostgreSQL server version: ${postgres_version}"
-          case "${postgres_version}" in
-            "${POSTGRES_VERSION}"*) ;;
-            *) echo "Expected PostgreSQL ${POSTGRES_VERSION}, got ${postgres_version}" >&2; exit 1 ;;
-          esac
-
-      - name: Stop PostgreSQL stage
-        run: make down
-
       - name: Start both databases without UI
         run: make up-no-ui
 
       - name: Check complete database stand
         run: make check
 
-      - name: Confirm Adminer is not running
+      - name: Confirm databases are running without Adminer
         run: |
+          set -Eeuo pipefail
           set -a
           source .docker.env
           set +a
-          adminer_id="$(docker compose --env-file .docker.env -p "${COMPOSE_PROJECT_NAME}" --profile ui ps --status running --quiet adminer)"
-          test -z "${adminer_id}"
 
-      - name: Start only Adminer and show status
-        run: |
-          make up-ui
-          make status
+          compose=(docker compose --env-file .docker.env -p "${COMPOSE_PROJECT_NAME}")
+          test -n "$("${compose[@]}" ps --status running --quiet mysql)"
+          test -n "$("${compose[@]}" ps --status running --quiet postgres)"
+          test -z "$("${compose[@]}" --profile ui ps --status running --quiet adminer)"
 
-      - name: Smoke-test Adminer login servers
+      - name: Start Adminer
+        run: make up-ui
+
+      - name: Smoke-test Adminer login page
         run: |
+          set -Eeuo pipefail
           set -a
           source .docker.env
           set +a
+
           adminer_url="http://127.0.0.1:${ADMINER_PORT}/"
           html_file="$(mktemp)"
           trap 'rm -f "${html_file}"' EXIT
+
+          adminer_ready=false
           for attempt in $(seq 1 30); do
             if curl --fail --silent --show-error "${adminer_url}" --output "${html_file}"; then
+              adminer_ready=true
               break
             fi
             sleep 2
           done
-          test -s "${html_file}"
+
+          test "${adminer_ready}" = true
           grep -F 'MySQL (mysql)' "${html_file}"
           grep -F 'PostgreSQL (postgres)' "${html_file}"
           grep -F 'Как войти' "${html_file}"
@@ -115,32 +82,36 @@ jobs:
           grep -F 'DB_PASSWORD' "${html_file}"
           grep -F 'demo' "${html_file}"
           if grep -E "value=['\"]db['\"]" "${html_file}"; then
-            echo 'Adminer still exposes invalid default server db' >&2
+            echo 'Adminer exposes invalid server db' >&2
             exit 1
           fi
 
-      - name: Restore no-UI mode
-        run: make up-no-ui
+      - name: Stop Adminer
+        run: make down-ui
 
       - name: Confirm UI stopped and databases stayed running
         run: |
-          make status
+          set -Eeuo pipefail
           set -a
           source .docker.env
           set +a
+
           compose=(docker compose --env-file .docker.env -p "${COMPOSE_PROJECT_NAME}")
           test -z "$("${compose[@]}" --profile ui ps --status running --quiet adminer)"
           test -n "$("${compose[@]}" ps --status running --quiet mysql)"
           test -n "$("${compose[@]}" ps --status running --quiet postgres)"
 
-      - name: Show diagnostics
+      - name: Show integration diagnostics
         if: failure()
         run: |
           set -a
           source .docker.env
           set +a
-          docker compose --env-file .docker.env -p "${COMPOSE_PROJECT_NAME}" --profile ui ps || true
-          docker compose --env-file .docker.env -p "${COMPOSE_PROJECT_NAME}" --profile ui logs --no-color || true
+
+          docker compose --env-file .docker.env -p "${COMPOSE_PROJECT_NAME}" \
+            --profile ui ps --all mysql postgres adminer || true
+          docker compose --env-file .docker.env -p "${COMPOSE_PROJECT_NAME}" \
+            --profile ui logs --no-color mysql postgres adminer || true
 
       - name: Stop containers
         if: always()

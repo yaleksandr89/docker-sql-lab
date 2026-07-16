@@ -9,7 +9,7 @@ SHELL := bash
 .PHONY: help init check-env pull config up up-no-ui up-mysql up-mysql-ui \
         up-postgres up-postgres-ui up-ui down-ui wait-mysql wait-postgres \
         down status logs log in mysql mysql-user postgres postgres-user sh \
-        samples-mysql mysql-grants mysql-import check check-mysql-access \
+        samples-mysql samples-postgres mysql-grants mysql-import check check-mysql-access \
         check-postgres-access dump restore clean-mysql clean-postgres clean-all \
         reinit-mysql reinit-postgres reinit-all
 
@@ -23,7 +23,7 @@ REQUIRED_ENV_VARS := COMPOSE_PROJECT_NAME MYSQL_VERSION POSTGRES_VERSION ADMINER
                      MYSQL_CONTAINER POSTGRES_CONTAINER ADMINER_CONTAINER \
                      MYSQL_PORT POSTGRES_PORT ADMINER_PORT \
                      MYSQL_DATA_DIR POSTGRES_DATA_DIR MYSQL_CONF_FILE \
-                     MYSQL_INITDB_DIR POSTGRES_INITDB_DIR MYSQL_SAMPLES_DIR \
+                     MYSQL_INITDB_DIR POSTGRES_INITDB_DIR MYSQL_SAMPLES_DIR POSTGRES_SAMPLES_DIR \
                      MYSQL_DATABASE POSTGRES_DATABASE MYSQL_ROOT_PASSWORD \
                      POSTGRES_SUPERUSER POSTGRES_SUPERUSER_PASSWORD DB_USER DB_PASSWORD
 
@@ -34,6 +34,9 @@ COMPOSE_UI = $(COMPOSE) --profile ui
 SAMPLES_TMP_DIR := .tmp/mysql-samples
 WORLD_URL := https://downloads.mysql.com/docs/world-db.zip
 SAKILA_URL := https://downloads.mysql.com/docs/sakila-db.zip
+POSTGRES_SAMPLES_TMP_DIR := .tmp/postgres-samples
+PAGILA_REF := 5ba5a57aeb159f75f02aca2432d3c262186d13d3
+PAGILA_BASE_URL := https://raw.githubusercontent.com/devrimgunduz/pagila/$(PAGILA_REF)
 
 # Поддерживаются оба варианта: `make log mysql` (исторический интерфейс) и
 # `make log SERVICE=mysql`. Второй positional goal становится no-op, чтобы он
@@ -62,10 +65,11 @@ help:
 	@echo "  make up-ui / make down-ui         включить / остановить только Adminer"
 	@echo "  make check                        проверить Compose и доступ DB_USER к обеим СУБД"
 	@echo "  make samples-mysql                скачать optional samples World и Sakila"
+	@echo "  make samples-postgres             скачать optional sample Pagila"
 	@echo "  make clean-{mysql,postgres,all} CONFIRM=1"
 	@echo "  make reinit-{mysql,postgres,all} CONFIRM=1"
 
-$(ENV_FILE): $(ENV_FILE_EXAMPLE)
+$(ENV_FILE):
 	@cp "$(ENV_FILE_EXAMPLE)" "$(ENV_FILE)"
 	@echo "Создан $(ENV_FILE) из $(ENV_FILE_EXAMPLE)."
 
@@ -101,7 +105,8 @@ init: check-env
 		"$$(dirname "$${MYSQL_CONF_FILE}")" \
 		"$${MYSQL_INITDB_DIR}" \
 		"$${POSTGRES_INITDB_DIR}" \
-		"$${MYSQL_SAMPLES_DIR}"; do \
+		"$${MYSQL_SAMPLES_DIR}" \
+		"$${POSTGRES_SAMPLES_DIR}"; do \
 		if [[ -n "$$directory" && ! -d "$$directory" ]]; then \
 			mkdir -p "$$directory"; \
 			echo "Создан каталог: $$directory"; \
@@ -118,6 +123,7 @@ init: check-env
 		"$${MYSQL_INITDB_DIR}/099_check_training_access.sh" \
 		"$${POSTGRES_INITDB_DIR}/001_create_training_role.sh" \
 		"$${POSTGRES_INITDB_DIR}/010_initialize_demo.sh" \
+		"$${POSTGRES_INITDB_DIR}/050_load_optional_samples.sh" \
 		"$${POSTGRES_INITDB_DIR}/099_check_training_access.sh"; do \
 		test -x "$$script" || { echo "ERROR: обязательный скрипт отсутствует или не исполняемый: $$script" >&2; exit 1; }; \
 	done
@@ -190,7 +196,7 @@ wait-mysql: check-env
 
 wait-postgres: check-env
 	@for ((attempt = 1; attempt <= 60; attempt++)); do \
-		if $(COMPOSE) exec -T postgres sh -c 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"' >/dev/null 2>&1; then \
+		if $(COMPOSE) exec -T postgres sh -c 'pg_isready --host=127.0.0.1 -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"' >/dev/null 2>&1; then \
 			echo "✅ PostgreSQL готов принимать подключения."; \
 			exit 0; \
 		fi; \
@@ -263,6 +269,65 @@ samples-mysql: check-env
 	echo "✅ Optional samples World и Sakila подготовлены в $${MYSQL_SAMPLES_DIR}."; \
 	echo "Они загрузятся только при следующей чистой инициализации MySQL."; \
 	echo "Для существующего MYSQL_DATA_DIR выполните явно: make reinit-mysql CONFIRM=1"
+
+samples-postgres: check-env
+	@command -v curl >/dev/null || { echo "ERROR: требуется curl" >&2; exit 1; }
+	@set -Eeuo pipefail; $(LOAD_ENV) \
+	tmp_root="$(POSTGRES_SAMPLES_TMP_DIR)"; \
+	download_dir="$${tmp_root}/download"; \
+	ready_dir="$${tmp_root}/ready"; \
+	previous_dir="$${tmp_root}/previous"; \
+	target_dir="$${POSTGRES_SAMPLES_DIR}"; \
+	cleanup() { \
+		if [[ -d "$${previous_dir}" && ! -e "$${target_dir}" ]]; then \
+			mv "$${previous_dir}" "$${target_dir}"; \
+		fi; \
+		rm -rf "$${tmp_root}"; \
+	}; \
+	trap cleanup EXIT; \
+	rm -rf "$${tmp_root}"; \
+	mkdir -p "$${download_dir}" "$${ready_dir}"; \
+	if [[ -L "$${target_dir}" ]]; then \
+		echo "ERROR: POSTGRES_SAMPLES_DIR не должен быть символической ссылкой: $${target_dir}" >&2; \
+		exit 1; \
+	fi; \
+	if [[ -e "$${target_dir}" && ! -d "$${target_dir}" ]]; then \
+		echo "ERROR: POSTGRES_SAMPLES_DIR должен быть каталогом: $${target_dir}" >&2; \
+		exit 1; \
+	fi; \
+	if [[ -d "$${target_dir}" ]] && find "$${target_dir}" -mindepth 1 -maxdepth 1 \
+		! -name 010_pagila_schema.sql ! -name 020_pagila_data.sql -print -quit | grep -q .; then \
+		echo "ERROR: $${target_dir} содержит посторонние файлы; безопасная замена отменена" >&2; \
+		exit 1; \
+	fi; \
+	echo "Скачиваем Pagila из devrimgunduz/pagila@$(PAGILA_REF)..."; \
+	curl --fail --location --retry 3 --retry-all-errors --connect-timeout 15 --max-time 180 \
+		"$(PAGILA_BASE_URL)/pagila-schema.sql" -o "$${download_dir}/pagila-schema.sql"; \
+	curl --fail --location --retry 3 --retry-all-errors --connect-timeout 15 --max-time 180 \
+		"$(PAGILA_BASE_URL)/pagila-data.sql" -o "$${download_dir}/pagila-data.sql"; \
+	test -s "$${download_dir}/pagila-schema.sql" || { echo "ERROR: pagila-schema.sql пуст" >&2; exit 1; }; \
+	test -s "$${download_dir}/pagila-data.sql" || { echo "ERROR: pagila-data.sql пуст" >&2; exit 1; }; \
+	grep -Fq 'CREATE TABLE public.actor' "$${download_dir}/pagila-schema.sql" || { echo "ERROR: в schema нет таблицы actor" >&2; exit 1; }; \
+	grep -Fq 'CREATE TABLE public.film' "$${download_dir}/pagila-schema.sql" || { echo "ERROR: в schema нет таблицы film" >&2; exit 1; }; \
+	grep -Fq 'ALTER TABLE public.actor OWNER TO postgres;' "$${download_dir}/pagila-schema.sql" || { echo "ERROR: неожиданный формат владельцев Pagila" >&2; exit 1; }; \
+	grep -Fq 'COPY public.actor' "$${download_dir}/pagila-data.sql" || { echo "ERROR: в data нет COPY для actor" >&2; exit 1; }; \
+	grep -Fq 'COPY public.rental' "$${download_dir}/pagila-data.sql" || { echo "ERROR: в data нет COPY для rental" >&2; exit 1; }; \
+	grep -Fxq '\.' "$${download_dir}/pagila-data.sql" || { echo "ERROR: в data нет завершителей COPY" >&2; exit 1; }; \
+	cp "$${download_dir}/pagila-schema.sql" "$${ready_dir}/010_pagila_schema.sql"; \
+	cp "$${download_dir}/pagila-data.sql" "$${ready_dir}/020_pagila_data.sql"; \
+	mkdir -p "$$(dirname "$${target_dir}")"; \
+	if [[ "$$(stat -c %d "$${ready_dir}")" != "$$(stat -c %d "$$(dirname "$${target_dir}")")" ]]; then \
+		echo "ERROR: .tmp и POSTGRES_SAMPLES_DIR должны находиться на одной файловой системе для атомарной публикации" >&2; \
+		exit 1; \
+	fi; \
+	if [[ -d "$${target_dir}" ]]; then \
+		mv "$${target_dir}" "$${previous_dir}"; \
+	fi; \
+	mv "$${ready_dir}" "$${target_dir}"; \
+	rm -rf "$${previous_dir}"; \
+	echo "✅ Pagila подготовлена в $${target_dir} из ревизии $(PAGILA_REF)."; \
+	echo "Пустой POSTGRES_DATA_DIR: make up-postgres"; \
+	echo "Уже инициализированный POSTGRES_DATA_DIR: make reinit-postgres CONFIRM=1"
 
 mysql-grants: wait-mysql
 	$(COMPOSE) exec -T mysql /docker-entrypoint-initdb.d/090_grant_training_access.sh
