@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+# Copy this file to an executable .sh file that sorts before
+# 099_check_training_access.sh, set TRAINING_DATABASE, and run it only during a
+# clean PostgreSQL initialization. The .example suffix prevents auto-execution.
+
+required_variables=(POSTGRES_USER POSTGRES_DB DB_USER TRAINING_DATABASE)
+for variable_name in "${required_variables[@]}"; do
+    if [[ -z "${!variable_name:-}" ]]; then
+        echo "ERROR: environment variable ${variable_name} is required" >&2
+        exit 1
+    fi
+done
+
+psql \
+    --username="${POSTGRES_USER}" \
+    --dbname="${POSTGRES_DB}" \
+    --set=ON_ERROR_STOP=1 \
+    --set=db_user="${DB_USER}" \
+    --set=database_name="${TRAINING_DATABASE}" <<'SQL'
+SELECT format('CREATE DATABASE %I OWNER %I', :'database_name', :'db_user')
+WHERE NOT EXISTS (
+    SELECT FROM pg_catalog.pg_database WHERE datname = :'database_name'
+)
+\gexec
+SQL
+
+psql \
+    --username="${POSTGRES_USER}" \
+    --dbname="${TRAINING_DATABASE}" \
+    --set=ON_ERROR_STOP=1 \
+    --set=db_user="${DB_USER}" <<'SQL'
+SET ROLE :"db_user";
+
+CREATE TABLE IF NOT EXISTS public.example_items
+(
+    id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    name varchar(255) NOT NULL
+);
+SQL
+
+echo "PostgreSQL training database ${TRAINING_DATABASE} is owned by ${DB_USER}."
