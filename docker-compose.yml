@@ -38,6 +38,7 @@ services:
     volumes:
       - "${POSTGRES_DATA_DIR}:/var/lib/postgresql"
       - "${POSTGRES_INITDB_DIR}:/docker-entrypoint-initdb.d:ro"
+      - "${POSTGRES_SAMPLES_DIR}:/opt/postgres-samples:ro"
     healthcheck:
       test: 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"'
       interval: 5s
