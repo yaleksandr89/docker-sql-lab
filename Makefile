@@ -196,7 +196,7 @@ wait-mysql: check-env
 
 wait-postgres: check-env
 	@for ((attempt = 1; attempt <= 60; attempt++)); do \
-		if $(COMPOSE) exec -T postgres sh -c 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"' >/dev/null 2>&1; then \
+		if $(COMPOSE) exec -T postgres sh -c 'pg_isready --host=127.0.0.1 -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"' >/dev/null 2>&1; then \
 			echo "✅ PostgreSQL готов принимать подключения."; \
 			exit 0; \
 		fi; \
