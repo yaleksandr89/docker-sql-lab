@@ -11,7 +11,7 @@ SHELL := bash
         down status logs log in mysql mysql-user postgres postgres-user sh \
         samples-mysql samples-postgres mysql-grants mysql-import check check-mysql-access \
         check-postgres-access dump restore clean-mysql clean-postgres clean-all \
-        reinit-mysql reinit-postgres reinit-all
+        reinit-mysql reinit-postgres reinit-all test-storage-paths
 
 PROJECT_DIR := $(CURDIR)
 ENV_FILE_EXAMPLE := .docker.env.example
@@ -72,6 +72,7 @@ help:
 	@echo "  make check                        проверить Compose и доступ DB_USER к обеим СУБД"
 	@echo "  make samples-mysql                скачать optional samples Chinook и Sakila"
 	@echo "  make samples-postgres             скачать optional samples Pagila и Chinook"
+	@echo "  make test-storage-paths           проверить защиту managed storage paths"
 	@echo "  make clean-{mysql,postgres,all} CONFIRM=1"
 	@echo "  make reinit-{mysql,postgres,all} CONFIRM=1"
 
@@ -97,10 +98,15 @@ check-env: $(ENV_FILE)
 		echo "ERROR: обязательные MYSQL_DATABASE и POSTGRES_DATABASE должны называться demo" >&2; \
 		exit 1; \
 	fi; \
-	if [[ "$$(realpath -m "$${MYSQL_DATA_DIR}")" == "$$(realpath -m "$${POSTGRES_DATA_DIR}")" ]]; then \
-		echo "ERROR: MYSQL_DATA_DIR и POSTGRES_DATA_DIR должны быть разными каталогами" >&2; \
-		exit 1; \
-	fi
+	"$(PROJECT_DIR)/scripts/validate-storage-paths.sh" \
+		--project-dir "$(PROJECT_DIR)" \
+		--mysql-data "$${MYSQL_DATA_DIR}" \
+		--postgres-data "$${POSTGRES_DATA_DIR}" \
+		--mysql-samples "$${MYSQL_SAMPLES_DIR}" \
+		--postgres-samples "$${POSTGRES_SAMPLES_DIR}"
+
+test-storage-paths:
+	@./scripts/test-storage-paths.sh
 
 init: check-env
 	@echo "Проверяем каталоги, конфигурацию и init-скрипты..."
@@ -473,10 +479,15 @@ clean-mysql: check-env
 	@$(LOAD_ENV) \
 	project_dir_abs="$$(realpath -m "$(PROJECT_DIR)")"; \
 	data_dir_abs="$$(realpath -m "$${MYSQL_DATA_DIR}")"; \
-	case "$${data_dir_abs}" in "$${project_dir_abs}"/*) ;; *) echo "ERROR: MYSQL_DATA_DIR должен находиться внутри проекта: $${data_dir_abs}" >&2; exit 1 ;; esac; \
-	data_dir_rel="$$(realpath --relative-to="$${project_dir_abs}" "$${data_dir_abs}")"; \
+	data_dir_rel="$${data_dir_abs#"$${project_dir_abs}"/}"; \
 	echo "🗑️  Удаление только данных MySQL: $${MYSQL_DATA_DIR}"; \
-	$(COMPOSE_UI) down --remove-orphans; \
+	container_id="$$( $(COMPOSE) ps --all --quiet mysql )"; \
+	if [[ -n "$${container_id}" ]]; then \
+		echo "⏹️  Остановка и удаление только MySQL..."; \
+		$(COMPOSE) rm --stop --force mysql; \
+	else \
+		echo "Контейнер MySQL отсутствует; останавливать нечего."; \
+	fi; \
 	docker run --rm --user 0:0 --entrypoint sh \
 		-e DATA_DIR_REL="$${data_dir_rel}" -e HOST_UID="$(HOST_UID)" -e HOST_GID="$(HOST_GID)" \
 		-v "$${project_dir_abs}:/workspace" "mysql:$${MYSQL_VERSION}" \
@@ -488,10 +499,15 @@ clean-postgres: check-env
 	@$(LOAD_ENV) \
 	project_dir_abs="$$(realpath -m "$(PROJECT_DIR)")"; \
 	data_dir_abs="$$(realpath -m "$${POSTGRES_DATA_DIR}")"; \
-	case "$${data_dir_abs}" in "$${project_dir_abs}"/*) ;; *) echo "ERROR: POSTGRES_DATA_DIR должен находиться внутри проекта: $${data_dir_abs}" >&2; exit 1 ;; esac; \
-	data_dir_rel="$$(realpath --relative-to="$${project_dir_abs}" "$${data_dir_abs}")"; \
+	data_dir_rel="$${data_dir_abs#"$${project_dir_abs}"/}"; \
 	echo "🗑️  Удаление только данных PostgreSQL: $${POSTGRES_DATA_DIR}"; \
-	$(COMPOSE_UI) down --remove-orphans; \
+	container_id="$$( $(COMPOSE) ps --all --quiet postgres )"; \
+	if [[ -n "$${container_id}" ]]; then \
+		echo "⏹️  Остановка и удаление только PostgreSQL..."; \
+		$(COMPOSE) rm --stop --force postgres; \
+	else \
+		echo "Контейнер PostgreSQL отсутствует; останавливать нечего."; \
+	fi; \
 	docker run --rm --user 0:0 --entrypoint sh \
 		-e DATA_DIR_REL="$${data_dir_rel}" -e HOST_UID="$(HOST_UID)" -e HOST_GID="$(HOST_GID)" \
 		-v "$${project_dir_abs}:/workspace" "postgres:$${POSTGRES_VERSION}" \
@@ -504,11 +520,8 @@ clean-all: check-env
 	project_dir_abs="$$(realpath -m "$(PROJECT_DIR)")"; \
 	mysql_abs="$$(realpath -m "$${MYSQL_DATA_DIR}")"; \
 	postgres_abs="$$(realpath -m "$${POSTGRES_DATA_DIR}")"; \
-	for data_dir_abs in "$$mysql_abs" "$$postgres_abs"; do \
-		case "$$data_dir_abs" in "$${project_dir_abs}"/*) ;; *) echo "ERROR: data-каталоги должны находиться внутри проекта: $$data_dir_abs" >&2; exit 1 ;; esac; \
-	done; \
-	mysql_rel="$$(realpath --relative-to="$${project_dir_abs}" "$$mysql_abs")"; \
-	postgres_rel="$$(realpath --relative-to="$${project_dir_abs}" "$$postgres_abs")"; \
+	mysql_rel="$${mysql_abs#"$${project_dir_abs}"/}"; \
+	postgres_rel="$${postgres_abs#"$${project_dir_abs}"/}"; \
 	echo "🗑️  Удаление данных MySQL и PostgreSQL..."; \
 	$(COMPOSE_UI) down --remove-orphans; \
 	docker run --rm --user 0:0 --entrypoint sh \
