@@ -1,7 +1,6 @@
 services:
   mysql:
     image: mysql:${MYSQL_VERSION}
-    container_name: ${MYSQL_CONTAINER}
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
@@ -10,10 +9,10 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       TZ: Europe/Moscow
     ports:
-      - "${MYSQL_PORT}:3306"
+      - "${BIND_ADDRESS:-127.0.0.1}:${MYSQL_PORT}:3306"
     volumes:
       - "${MYSQL_DATA_DIR}:/var/lib/mysql"
-      - "${MYSQL_CONF_FILE}:/etc/mysql/conf.d/z-stepik.cnf:ro"
+      - "${MYSQL_CONF_FILE}:/etc/mysql/conf.d/sql-lab.cnf:ro"
       - "${MYSQL_INITDB_DIR}:/docker-entrypoint-initdb.d:ro"
       - "${MYSQL_SAMPLES_DIR}:/opt/mysql-samples:ro"
     healthcheck:
@@ -24,7 +23,6 @@ services:
 
   postgres:
     image: postgres:${POSTGRES_VERSION}
-    container_name: ${POSTGRES_CONTAINER}
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_SUPERUSER}
@@ -34,7 +32,7 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       TZ: Europe/Moscow
     ports:
-      - "${POSTGRES_PORT}:5432"
+      - "${BIND_ADDRESS:-127.0.0.1}:${POSTGRES_PORT}:5432"
     volumes:
       - "${POSTGRES_DATA_DIR}:/var/lib/postgresql"
       - "${POSTGRES_INITDB_DIR}:/docker-entrypoint-initdb.d:ro"
@@ -47,7 +45,6 @@ services:
 
   adminer:
     image: adminer:${ADMINER_VERSION}
-    container_name: ${ADMINER_CONTAINER}
     restart: unless-stopped
     profiles:
       - ui
@@ -55,7 +52,7 @@ services:
       ADMINER_DESIGN: nette
       TZ: Europe/Moscow
     ports:
-      - "${ADMINER_PORT}:8080"
+      - "${BIND_ADDRESS:-127.0.0.1}:${ADMINER_PORT}:8080"
     volumes:
       - "./adminer/plugins-enabled/001-login-servers.php:/var/www/html/plugins-enabled/001-login-servers.php:ro"
       - "./adminer/plugins-enabled/002-login-help.php:/var/www/html/plugins-enabled/002-login-help.php:ro"
