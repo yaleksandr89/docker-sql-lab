@@ -49,10 +49,10 @@ jobs:
           databases="$(
             docker compose --env-file .docker.env -p "${COMPOSE_PROJECT_NAME}" \
               exec -T mysql sh -c \
-              'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql --user=root --batch --skip-column-names --execute="SELECT GROUP_CONCAT(SCHEMA_NAME ORDER BY SCHEMA_NAME) FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME IN (\"demo\", \"world\", \"sakila\");"' \
+              'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql --user=root --batch --skip-column-names --execute="SELECT GROUP_CONCAT(SCHEMA_NAME ORDER BY SCHEMA_NAME) FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME IN (\"demo\", \"sakila\", \"chinook\");"' \
               | tr -d '\r'
           )"
-          test "${databases}" = "demo,sakila,world"
+          test "${databases}" = "chinook,demo,sakila"
 
       - name: Check MySQL training access
         run: make check-mysql-access

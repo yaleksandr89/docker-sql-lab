@@ -81,6 +81,11 @@ jobs:
           grep -F 'DB_USER' "${html_file}"
           grep -F 'DB_PASSWORD' "${html_file}"
           grep -F 'demo' "${html_file}"
+          grep -F 'chinook' "${html_file}"
+          if grep -Fi 'world' "${html_file}"; then
+            echo 'Adminer exposes World as an available training database' >&2
+            exit 1
+          fi
           if grep -E "value=['\"]db['\"]" "${html_file}"; then
             echo 'Adminer exposes invalid server db' >&2
             exit 1

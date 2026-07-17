@@ -105,11 +105,54 @@ SQL
 
 echo "Verified required MySQL table, all five seed emails and user-row INSERT access."
 
-if [[ " ${expected_databases[*]} " =~ [[:space:]]world[[:space:]] ]]; then
-    mysql_training --execute="SELECT COUNT(*) FROM world.city;" >/dev/null
-    echo "Found and verified optional MySQL sample world.city."
+if [[ " ${expected_databases[*]} " =~ [[:space:]]chinook[[:space:]] ]]; then
+    chinook_key_table_count=$(mysql_training --execute="
+        SELECT COUNT(*)
+        FROM information_schema.tables
+        WHERE table_schema = 'chinook'
+          AND table_type = 'BASE TABLE'
+          AND BINARY table_name IN ('Artist', 'Album', 'Track', 'Customer', 'Invoice');
+    ")
+    if [[ "${chinook_key_table_count}" != "5" ]]; then
+        echo "ERROR: Chinook does not contain all required case-sensitive tables" >&2
+        exit 1
+    fi
+
+    chinook_key_tables_have_data=$(mysql_training --execute="
+        SELECT EXISTS (SELECT 1 FROM chinook.Artist)
+           AND EXISTS (SELECT 1 FROM chinook.Album)
+           AND EXISTS (SELECT 1 FROM chinook.Track)
+           AND EXISTS (SELECT 1 FROM chinook.Customer)
+           AND EXISTS (SELECT 1 FROM chinook.Invoice);
+    ")
+    if [[ "${chinook_key_tables_have_data}" != "1" ]]; then
+        echo "ERROR: one or more required Chinook tables contain no data" >&2
+        exit 1
+    fi
+
+    chinook_join_has_data=$(mysql_training --execute="
+        SELECT EXISTS (
+            SELECT 1
+            FROM chinook.Artist AS artist
+            JOIN chinook.Album AS album ON album.ArtistId = artist.ArtistId
+            JOIN chinook.Track AS track ON track.AlbumId = album.AlbumId
+        );
+    ")
+    if [[ "${chinook_join_has_data}" != "1" ]]; then
+        echo "ERROR: Chinook Artist-Album-Track join returned no rows" >&2
+        exit 1
+    fi
+
+    mysql_training <<'SQL'
+START TRANSACTION;
+INSERT INTO chinook.Artist (ArtistId, Name)
+VALUES (-2147483648, 'SQL Lab access check');
+SELECT Name FROM chinook.Artist WHERE ArtistId = -2147483648;
+ROLLBACK;
+SQL
+    echo "Found and verified optional MySQL sample Chinook tables, data, join and reversible write access."
 else
-    echo "Optional MySQL sample World is not installed; skipped."
+    echo "Optional MySQL sample Chinook is not installed; skipped."
 fi
 
 if [[ " ${expected_databases[*]} " =~ [[:space:]]sakila[[:space:]] ]]; then

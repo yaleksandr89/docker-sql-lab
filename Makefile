@@ -31,12 +31,19 @@ LOAD_ENV = set -a; source "$(ENV_FILE)"; set +a;
 COMPOSE = docker compose --env-file "$(ENV_FILE)" -p "$$(awk -F= '$$1 == "COMPOSE_PROJECT_NAME" { print substr($$0, index($$0, "=") + 1); exit }' "$(ENV_FILE)")"
 COMPOSE_UI = $(COMPOSE) --profile ui
 
-SAMPLES_TMP_DIR := .tmp/mysql-samples
-WORLD_URL := https://downloads.mysql.com/docs/world-db.zip
+MYSQL_SAMPLES_TMP_DIR := .tmp/mysql-samples
 SAKILA_URL := https://downloads.mysql.com/docs/sakila-db.zip
 POSTGRES_SAMPLES_TMP_DIR := .tmp/postgres-samples
 PAGILA_REF := 5ba5a57aeb159f75f02aca2432d3c262186d13d3
 PAGILA_BASE_URL := https://raw.githubusercontent.com/devrimgunduz/pagila/$(PAGILA_REF)
+CHINOOK_REF := 4a944a942426e1f3263fe539155fb7ef92b04b4a
+CHINOOK_BASE_URL := https://raw.githubusercontent.com/lerocha/chinook-database/$(CHINOOK_REF)
+CHINOOK_LICENSE_URL := $(CHINOOK_BASE_URL)/LICENSE.md
+CHINOOK_MYSQL_URL := $(CHINOOK_BASE_URL)/ChinookDatabase/DataSources/Chinook_MySql.sql
+CHINOOK_POSTGRES_URL := $(CHINOOK_BASE_URL)/ChinookDatabase/DataSources/Chinook_PostgreSql.sql
+CHINOOK_LICENSE_BLOB := 7487a9edc2d42e50d7a38ab1fbdba33ac63230f7
+CHINOOK_MYSQL_BLOB := cdbd482f1be7fde54644480ec7c794ff2764b109
+CHINOOK_POSTGRES_BLOB := d93a20d08239ac6bdd8a56601e148f5d4d048593
 
 # Поддерживаются оба варианта: `make log mysql` (исторический интерфейс) и
 # `make log SERVICE=mysql`. Второй positional goal становится no-op, чтобы он
@@ -64,8 +71,8 @@ help:
 	@echo "  make up-postgres[-ui]             запустить только PostgreSQL, опционально с UI"
 	@echo "  make up-ui / make down-ui         включить / остановить только Adminer"
 	@echo "  make check                        проверить Compose и доступ DB_USER к обеим СУБД"
-	@echo "  make samples-mysql                скачать optional samples World и Sakila"
-	@echo "  make samples-postgres             скачать optional sample Pagila"
+	@echo "  make samples-mysql                скачать optional samples Chinook и Sakila"
+	@echo "  make samples-postgres             скачать optional samples Pagila и Chinook"
 	@echo "  make clean-{mysql,postgres,all} CONFIRM=1"
 	@echo "  make reinit-{mysql,postgres,all} CONFIRM=1"
 
@@ -247,31 +254,96 @@ sh: check-env
 samples-mysql: check-env
 	@command -v curl >/dev/null || { echo "ERROR: требуется curl" >&2; exit 1; }
 	@command -v unzip >/dev/null || { echo "ERROR: требуется unzip" >&2; exit 1; }
+	@command -v git >/dev/null || { echo "ERROR: требуется git для проверки Git blob SHA" >&2; exit 1; }
 	@set -Eeuo pipefail; $(LOAD_ENV) \
-	cleanup() { rm -rf "$(SAMPLES_TMP_DIR)"; }; \
+	tmp_root="$(MYSQL_SAMPLES_TMP_DIR)"; \
+	download_dir="$${tmp_root}/download"; \
+	ready_dir="$${tmp_root}/ready"; \
+	previous_dir="$${tmp_root}/previous"; \
+	target_dir="$${MYSQL_SAMPLES_DIR}"; \
+	cleanup() { \
+		if [[ -d "$${previous_dir}" && ! -e "$${target_dir}" ]]; then \
+			mv "$${previous_dir}" "$${target_dir}"; \
+		fi; \
+		rm -rf "$${tmp_root}"; \
+	}; \
 	trap cleanup EXIT; \
-	cleanup; \
-	mkdir -p "$(SAMPLES_TMP_DIR)/world" "$(SAMPLES_TMP_DIR)/sakila" "$${MYSQL_SAMPLES_DIR}"; \
-	echo "Скачиваем официальные MySQL samples World и Sakila..."; \
-	curl -fL "$(WORLD_URL)" -o "$(SAMPLES_TMP_DIR)/world-db.zip"; \
-	curl -fL "$(SAKILA_URL)" -o "$(SAMPLES_TMP_DIR)/sakila-db.zip"; \
-	unzip -q "$(SAMPLES_TMP_DIR)/world-db.zip" -d "$(SAMPLES_TMP_DIR)/world"; \
-	unzip -q "$(SAMPLES_TMP_DIR)/sakila-db.zip" -d "$(SAMPLES_TMP_DIR)/sakila"; \
-	world_source="$$(find "$(SAMPLES_TMP_DIR)/world" -type f -name world.sql -print -quit)"; \
-	sakila_schema_source="$$(find "$(SAMPLES_TMP_DIR)/sakila" -type f -name sakila-schema.sql -print -quit)"; \
-	sakila_data_source="$$(find "$(SAMPLES_TMP_DIR)/sakila" -type f -name sakila-data.sql -print -quit)"; \
-	test -n "$$world_source" || { echo "ERROR: архив World не содержит world.sql" >&2; exit 1; }; \
+	rm -rf "$${tmp_root}"; \
+	mkdir -p "$${download_dir}/sakila" "$${ready_dir}"; \
+	if [[ -L "$${target_dir}" ]]; then \
+		echo "ERROR: MYSQL_SAMPLES_DIR не должен быть символической ссылкой: $${target_dir}" >&2; \
+		exit 1; \
+	fi; \
+	if [[ -e "$${target_dir}" && ! -d "$${target_dir}" ]]; then \
+		echo "ERROR: MYSQL_SAMPLES_DIR должен быть каталогом: $${target_dir}" >&2; \
+		exit 1; \
+	fi; \
+	if [[ -d "$${target_dir}" ]] && find "$${target_dir}" -mindepth 1 -maxdepth 1 \
+		! -name .gitkeep ! -name 010_world.sql ! -name 010_chinook.sql \
+		! -name 020_sakila_schema.sql ! -name 021_sakila_data.sql -print -quit | grep -q .; then \
+		echo "ERROR: $${target_dir} содержит посторонние файлы; безопасная замена отменена" >&2; \
+		exit 1; \
+	fi; \
+	echo "Скачиваем Chinook из lerocha/chinook-database@$(CHINOOK_REF) и официальный Sakila..."; \
+	curl --fail --location --retry 3 --retry-all-errors --connect-timeout 15 --max-time 180 \
+		"$(CHINOOK_LICENSE_URL)" -o "$${download_dir}/LICENSE.md"; \
+	curl --fail --location --retry 3 --retry-all-errors --connect-timeout 15 --max-time 180 \
+		"$(CHINOOK_MYSQL_URL)" -o "$${download_dir}/Chinook_MySql.sql"; \
+	curl --fail --location --retry 3 --retry-all-errors --connect-timeout 15 --max-time 180 \
+		"$(SAKILA_URL)" -o "$${download_dir}/sakila-db.zip"; \
+	test "$$(git hash-object --no-filters "$${download_dir}/LICENSE.md")" = "$(CHINOOK_LICENSE_BLOB)" || { echo "ERROR: неожиданный Git blob SHA LICENSE.md" >&2; exit 1; }; \
+	test "$$(git hash-object --no-filters "$${download_dir}/Chinook_MySql.sql")" = "$(CHINOOK_MYSQL_BLOB)" || { echo "ERROR: неожиданный Git blob SHA Chinook_MySql.sql" >&2; exit 1; }; \
+	test -s "$${download_dir}/LICENSE.md" || { echo "ERROR: LICENSE.md пуст" >&2; exit 1; }; \
+	test -s "$${download_dir}/Chinook_MySql.sql" || { echo "ERROR: Chinook_MySql.sql пуст" >&2; exit 1; }; \
+	sed 's/\r$$//' "$${download_dir}/LICENSE.md" > "$${download_dir}/LICENSE.normalized.md"; \
+	sed 's/\r$$//' "$${download_dir}/Chinook_MySql.sql" > "$${download_dir}/Chinook_MySql.normalized.sql"; \
+	chinook_source="$${download_dir}/Chinook_MySql.normalized.sql"; \
+	grep -Fq 'Chinook Database - Version 1.4.5' "$${chinook_source}" || { echo "ERROR: неожиданная версия Chinook MySQL" >&2; exit 1; }; \
+	grep -Fq 'DB Server: MySql' "$${chinook_source}" || { echo "ERROR: неожиданный DB Server Chinook MySQL" >&2; exit 1; }; \
+	for table_name in Album Artist Customer Invoice Track; do \
+		grep -Fq "CREATE TABLE \`$${table_name}\`" "$${chinook_source}" || { echo "ERROR: Chinook MySQL не содержит таблицу $${table_name}" >&2; exit 1; }; \
+		grep -Fq "INSERT INTO \`$${table_name}\`" "$${chinook_source}" || { echo "ERROR: Chinook MySQL не содержит данные $${table_name}" >&2; exit 1; }; \
+	done; \
+	for expected_line in 'DROP DATABASE IF EXISTS `Chinook`;' 'CREATE DATABASE `Chinook`;' 'USE `Chinook`;'; do \
+		test "$$(grep -Fxc "$${expected_line}" "$${chinook_source}" || true)" = 1 || { echo "ERROR: неожиданный формат database-level строки: $${expected_line}" >&2; exit 1; }; \
+	done; \
+	test "$$(awk 'BEGIN { in_comment = 0; count = 0 } { upper = toupper($$0) } /^[[:space:]]*\/\*/ { in_comment = 1 } !in_comment && upper ~ /^[[:space:]]*((DROP|CREATE)[[:space:]]+DATABASE|USE[[:space:]])/ { count++ } /\*\// { in_comment = 0 } END { print count }' "$${chinook_source}")" = 3 || { echo "ERROR: Chinook MySQL содержит неожиданные database-level statements" >&2; exit 1; }; \
+	{ \
+		echo '-- Chinook Database MIT license notice (upstream LICENSE.md):'; \
+		sed 's/^/-- /' "$${download_dir}/LICENSE.normalized.md"; \
+		echo; \
+		awk '$$0 != "DROP DATABASE IF EXISTS `Chinook`;" && $$0 != "CREATE DATABASE `Chinook`;" && $$0 != "USE `Chinook`;"' "$${chinook_source}"; \
+	} > "$${ready_dir}/010_chinook.sql"; \
+	if awk 'BEGIN { in_comment = 0; found = 0 } { upper = toupper($$0) } /^[[:space:]]*\/\*/ { in_comment = 1 } !in_comment && upper ~ /^[[:space:]]*((DROP|CREATE)[[:space:]]+DATABASE|USE[[:space:]])/ { found = 1 } /\*\// { in_comment = 0 } END { exit(found ? 0 : 1) }' "$${ready_dir}/010_chinook.sql"; then \
+		echo "ERROR: готовый Chinook MySQL содержит database-level setup" >&2; \
+		exit 1; \
+	fi; \
+	while IFS= read -r license_line || [[ -n "$${license_line}" ]]; do \
+		grep -Fxq -- "-- $${license_line}" "$${ready_dir}/010_chinook.sql" || { echo "ERROR: MIT notice перенесён не полностью" >&2; exit 1; }; \
+	done < "$${download_dir}/LICENSE.normalized.md"; \
+	unzip -q "$${download_dir}/sakila-db.zip" -d "$${download_dir}/sakila"; \
+	sakila_schema_source="$$(find "$${download_dir}/sakila" -type f -name sakila-schema.sql -print -quit)"; \
+	sakila_data_source="$$(find "$${download_dir}/sakila" -type f -name sakila-data.sql -print -quit)"; \
 	test -n "$$sakila_schema_source" || { echo "ERROR: архив Sakila не содержит sakila-schema.sql" >&2; exit 1; }; \
 	test -n "$$sakila_data_source" || { echo "ERROR: архив Sakila не содержит sakila-data.sql" >&2; exit 1; }; \
-	cp "$$world_source" "$${MYSQL_SAMPLES_DIR}/010_world.sql"; \
-	cp "$$sakila_schema_source" "$${MYSQL_SAMPLES_DIR}/020_sakila_schema.sql"; \
-	cp "$$sakila_data_source" "$${MYSQL_SAMPLES_DIR}/021_sakila_data.sql"; \
-	echo "✅ Optional samples World и Sakila подготовлены в $${MYSQL_SAMPLES_DIR}."; \
+	cp "$$sakila_schema_source" "$${ready_dir}/020_sakila_schema.sql"; \
+	cp "$$sakila_data_source" "$${ready_dir}/021_sakila_data.sql"; \
+	if [[ -f "$${target_dir}/.gitkeep" ]]; then cp "$${target_dir}/.gitkeep" "$${ready_dir}/.gitkeep"; else touch "$${ready_dir}/.gitkeep"; fi; \
+	mkdir -p "$$(dirname "$${target_dir}")"; \
+	if [[ "$$(stat -c %d "$${ready_dir}")" != "$$(stat -c %d "$$(dirname "$${target_dir}")")" ]]; then \
+		echo "ERROR: .tmp и MYSQL_SAMPLES_DIR должны находиться на одной файловой системе для атомарной публикации" >&2; \
+		exit 1; \
+	fi; \
+	if [[ -d "$${target_dir}" ]]; then mv "$${target_dir}" "$${previous_dir}"; fi; \
+	mv "$${ready_dir}" "$${target_dir}"; \
+	rm -rf "$${previous_dir}"; \
+	echo "✅ Optional samples Chinook и Sakila подготовлены в $${target_dir}."; \
 	echo "Они загрузятся только при следующей чистой инициализации MySQL."; \
 	echo "Для существующего MYSQL_DATA_DIR выполните явно: make reinit-mysql CONFIRM=1"
 
 samples-postgres: check-env
 	@command -v curl >/dev/null || { echo "ERROR: требуется curl" >&2; exit 1; }
+	@command -v git >/dev/null || { echo "ERROR: требуется git для проверки Git blob SHA" >&2; exit 1; }
 	@set -Eeuo pipefail; $(LOAD_ENV) \
 	tmp_root="$(POSTGRES_SAMPLES_TMP_DIR)"; \
 	download_dir="$${tmp_root}/download"; \
@@ -296,15 +368,19 @@ samples-postgres: check-env
 		exit 1; \
 	fi; \
 	if [[ -d "$${target_dir}" ]] && find "$${target_dir}" -mindepth 1 -maxdepth 1 \
-		! -name 010_pagila_schema.sql ! -name 020_pagila_data.sql -print -quit | grep -q .; then \
+		! -name 010_pagila_schema.sql ! -name 020_pagila_data.sql ! -name 030_chinook.sql -print -quit | grep -q .; then \
 		echo "ERROR: $${target_dir} содержит посторонние файлы; безопасная замена отменена" >&2; \
 		exit 1; \
 	fi; \
-	echo "Скачиваем Pagila из devrimgunduz/pagila@$(PAGILA_REF)..."; \
+	echo "Скачиваем Pagila из devrimgunduz/pagila@$(PAGILA_REF) и Chinook из lerocha/chinook-database@$(CHINOOK_REF)..."; \
 	curl --fail --location --retry 3 --retry-all-errors --connect-timeout 15 --max-time 180 \
 		"$(PAGILA_BASE_URL)/pagila-schema.sql" -o "$${download_dir}/pagila-schema.sql"; \
 	curl --fail --location --retry 3 --retry-all-errors --connect-timeout 15 --max-time 180 \
 		"$(PAGILA_BASE_URL)/pagila-data.sql" -o "$${download_dir}/pagila-data.sql"; \
+	curl --fail --location --retry 3 --retry-all-errors --connect-timeout 15 --max-time 180 \
+		"$(CHINOOK_LICENSE_URL)" -o "$${download_dir}/LICENSE.md"; \
+	curl --fail --location --retry 3 --retry-all-errors --connect-timeout 15 --max-time 180 \
+		"$(CHINOOK_POSTGRES_URL)" -o "$${download_dir}/Chinook_PostgreSql.sql"; \
 	test -s "$${download_dir}/pagila-schema.sql" || { echo "ERROR: pagila-schema.sql пуст" >&2; exit 1; }; \
 	test -s "$${download_dir}/pagila-data.sql" || { echo "ERROR: pagila-data.sql пуст" >&2; exit 1; }; \
 	grep -Fq 'CREATE TABLE public.actor' "$${download_dir}/pagila-schema.sql" || { echo "ERROR: в schema нет таблицы actor" >&2; exit 1; }; \
@@ -313,8 +389,38 @@ samples-postgres: check-env
 	grep -Fq 'COPY public.actor' "$${download_dir}/pagila-data.sql" || { echo "ERROR: в data нет COPY для actor" >&2; exit 1; }; \
 	grep -Fq 'COPY public.rental' "$${download_dir}/pagila-data.sql" || { echo "ERROR: в data нет COPY для rental" >&2; exit 1; }; \
 	grep -Fxq '\.' "$${download_dir}/pagila-data.sql" || { echo "ERROR: в data нет завершителей COPY" >&2; exit 1; }; \
+	test "$$(git hash-object --no-filters "$${download_dir}/LICENSE.md")" = "$(CHINOOK_LICENSE_BLOB)" || { echo "ERROR: неожиданный Git blob SHA LICENSE.md" >&2; exit 1; }; \
+	test "$$(git hash-object --no-filters "$${download_dir}/Chinook_PostgreSql.sql")" = "$(CHINOOK_POSTGRES_BLOB)" || { echo "ERROR: неожиданный Git blob SHA Chinook_PostgreSql.sql" >&2; exit 1; }; \
+	test -s "$${download_dir}/LICENSE.md" || { echo "ERROR: LICENSE.md пуст" >&2; exit 1; }; \
+	test -s "$${download_dir}/Chinook_PostgreSql.sql" || { echo "ERROR: Chinook_PostgreSql.sql пуст" >&2; exit 1; }; \
+	sed 's/\r$$//' "$${download_dir}/LICENSE.md" > "$${download_dir}/LICENSE.normalized.md"; \
+	sed 's/\r$$//' "$${download_dir}/Chinook_PostgreSql.sql" > "$${download_dir}/Chinook_PostgreSql.normalized.sql"; \
+	chinook_source="$${download_dir}/Chinook_PostgreSql.normalized.sql"; \
+	grep -Fq 'Chinook Database - Version 1.4.5' "$${chinook_source}" || { echo "ERROR: неожиданная версия Chinook PostgreSQL" >&2; exit 1; }; \
+	grep -Fq 'DB Server: PostgreSql' "$${chinook_source}" || { echo "ERROR: неожиданный DB Server Chinook PostgreSQL" >&2; exit 1; }; \
+	for table_name in album artist customer invoice track; do \
+		grep -Fq "CREATE TABLE $${table_name}" "$${chinook_source}" || { echo "ERROR: Chinook PostgreSQL не содержит таблицу $${table_name}" >&2; exit 1; }; \
+		grep -Fq "INSERT INTO $${table_name}" "$${chinook_source}" || { echo "ERROR: Chinook PostgreSQL не содержит данные $${table_name}" >&2; exit 1; }; \
+	done; \
+	for expected_line in 'DROP DATABASE IF EXISTS chinook;' 'CREATE DATABASE chinook;' '\c chinook;'; do \
+		test "$$(grep -Fxc "$${expected_line}" "$${chinook_source}" || true)" = 1 || { echo "ERROR: неожиданный формат database-level строки: $${expected_line}" >&2; exit 1; }; \
+	done; \
+	test "$$(awk 'BEGIN { in_comment = 0; count = 0 } { upper = toupper($$0) } /^[[:space:]]*\/\*/ { in_comment = 1 } !in_comment && (upper ~ /^[[:space:]]*(DROP|CREATE)[[:space:]]+DATABASE/ || upper ~ /^[[:space:]]*\\(C|CONNECT)([[:space:]]|$$)/) { count++ } /\*\// { in_comment = 0 } END { print count }' "$${chinook_source}")" = 3 || { echo "ERROR: Chinook PostgreSQL содержит неожиданные database-level statements" >&2; exit 1; }; \
 	cp "$${download_dir}/pagila-schema.sql" "$${ready_dir}/010_pagila_schema.sql"; \
 	cp "$${download_dir}/pagila-data.sql" "$${ready_dir}/020_pagila_data.sql"; \
+	{ \
+		echo '-- Chinook Database MIT license notice (upstream LICENSE.md):'; \
+		sed 's/^/-- /' "$${download_dir}/LICENSE.normalized.md"; \
+		echo; \
+		awk '$$0 != "DROP DATABASE IF EXISTS chinook;" && $$0 != "CREATE DATABASE chinook;" && $$0 != "\\c chinook;"' "$${chinook_source}"; \
+	} > "$${ready_dir}/030_chinook.sql"; \
+	if awk 'BEGIN { in_comment = 0; found = 0 } { upper = toupper($$0) } /^[[:space:]]*\/\*/ { in_comment = 1 } !in_comment && (upper ~ /^[[:space:]]*(DROP|CREATE)[[:space:]]+DATABASE/ || upper ~ /^[[:space:]]*\\(C|CONNECT)([[:space:]]|$$)/) { found = 1 } /\*\// { in_comment = 0 } END { exit(found ? 0 : 1) }' "$${ready_dir}/030_chinook.sql"; then \
+		echo "ERROR: готовый Chinook PostgreSQL содержит database-level setup" >&2; \
+		exit 1; \
+	fi; \
+	while IFS= read -r license_line || [[ -n "$${license_line}" ]]; do \
+		grep -Fxq -- "-- $${license_line}" "$${ready_dir}/030_chinook.sql" || { echo "ERROR: MIT notice перенесён не полностью" >&2; exit 1; }; \
+	done < "$${download_dir}/LICENSE.normalized.md"; \
 	mkdir -p "$$(dirname "$${target_dir}")"; \
 	if [[ "$$(stat -c %d "$${ready_dir}")" != "$$(stat -c %d "$$(dirname "$${target_dir}")")" ]]; then \
 		echo "ERROR: .tmp и POSTGRES_SAMPLES_DIR должны находиться на одной файловой системе для атомарной публикации" >&2; \
@@ -325,7 +431,7 @@ samples-postgres: check-env
 	fi; \
 	mv "$${ready_dir}" "$${target_dir}"; \
 	rm -rf "$${previous_dir}"; \
-	echo "✅ Pagila подготовлена в $${target_dir} из ревизии $(PAGILA_REF)."; \
+	echo "✅ Pagila и Chinook подготовлены в $${target_dir} из закреплённых ревизий."; \
 	echo "Пустой POSTGRES_DATA_DIR: make up-postgres"; \
 	echo "Уже инициализированный POSTGRES_DATA_DIR: make reinit-postgres CONFIRM=1"
 
