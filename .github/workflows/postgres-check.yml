@@ -33,7 +33,7 @@ jobs:
       - name: Validate Compose configuration
         run: make config
 
-      - name: Prepare PostgreSQL sample
+      - name: Prepare PostgreSQL samples
         run: make samples-postgres
 
       - name: Start only PostgreSQL
@@ -47,12 +47,18 @@ jobs:
           set +a
 
           databases="$(
-            docker compose --env-file .docker.env -p "${COMPOSE_PROJECT_NAME}" \
-              exec -T postgres sh -c \
-              'PGPASSWORD="$POSTGRES_PASSWORD" psql --host=127.0.0.1 --username="$POSTGRES_USER" --dbname="$POSTGRES_DB" --tuples-only --no-align --command="SELECT string_agg(datname, chr(44) ORDER BY datname) FROM pg_catalog.pg_database WHERE datname IN (current_database(), chr(112) || chr(97) || chr(103) || chr(105) || chr(108) || chr(97));"' \
-              | tr -d '\r'
+            PGPASSWORD="${POSTGRES_SUPERUSER_PASSWORD}" \
+              docker compose --env-file .docker.env -p "${COMPOSE_PROJECT_NAME}" \
+              exec -T -e PGPASSWORD postgres \
+              psql --host=127.0.0.1 --username="${POSTGRES_SUPERUSER}" \
+              --dbname="${POSTGRES_DATABASE}" --tuples-only --no-align \
+              <<'SQL' | tr -d '\r'
+          SELECT string_agg(datname, ',' ORDER BY datname)
+          FROM pg_catalog.pg_database
+          WHERE datname IN (current_database(), 'pagila', 'chinook');
+          SQL
           )"
-          test "${databases}" = "demo,pagila"
+          test "${databases}" = "chinook,demo,pagila"
 
       - name: Check PostgreSQL training access
         run: make check-postgres-access
@@ -78,7 +84,7 @@ jobs:
               ;;
           esac
 
-      - name: Verify Pagila loader idempotency
+      - name: Verify Pagila and Chinook loader idempotency
         run: |
           set -Eeuo pipefail
           set -a
@@ -90,8 +96,9 @@ jobs:
               exec -T postgres /docker-entrypoint-initdb.d/050_load_optional_samples.sh
           )"
           echo "${loader_output}"
-          grep -Fq 'already complete' <<< "${loader_output}"
-          grep -Fq 'skipping reload' <<< "${loader_output}"
+          grep -Fq 'Optional PostgreSQL sample Pagila is already complete' <<< "${loader_output}"
+          grep -Fq 'Optional PostgreSQL sample Chinook is already complete' <<< "${loader_output}"
+          test "$(grep -Fc 'skipping reload.' <<< "${loader_output}")" = 2
 
       - name: Restart only PostgreSQL
         run: |

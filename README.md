@@ -12,8 +12,9 @@ Upstream Adminer уже выпускает 5.4.4, но официальный Do
 собирает собственный образ только ради расхождения версий.
 
 В MySQL и PostgreSQL всегда создаётся небольшая база `demo`. Для MySQL
-опционально доступны World и Sakila, для PostgreSQL — Pagila, PostgreSQL-порт
-Sakila.
+опционально доступны Sakila и Chinook, для PostgreSQL — Pagila и та же
+Chinook. Это позволяет сравнивать запросы к одинаковой учебной модели в двух
+СУБД.
 
 ## Быстрый старт
 
@@ -114,8 +115,8 @@ PostgreSQL (postgres)
 
 Страница входа содержит локальную подсказку: выбрать MySQL или PostgreSQL,
 использовать значения `DB_USER`/`DB_PASSWORD` из `.docker.env` и базу `demo`.
-После отдельной подготовки samples доступны также World и Sakila для MySQL и
-Pagila для PostgreSQL.
+После отдельной подготовки samples доступны также Sakila и Chinook для MySQL,
+Pagila и Chinook для PostgreSQL.
 
 Вход в MySQL:
 
@@ -123,7 +124,7 @@ Pagila для PostgreSQL.
 Server: MySQL (mysql)
 Username: значение DB_USER
 Password: значение DB_PASSWORD
-Database: demo, world, sakila или пустое поле
+Database: demo, sakila, chinook или пустое поле
 ```
 
 Вход в PostgreSQL:
@@ -132,7 +133,7 @@ Database: demo, world, sakila или пустое поле
 Server: PostgreSQL (postgres)
 Username: значение DB_USER
 Password: значение DB_PASSWORD
-Database: demo или pagila, если Pagila установлена
+Database: demo, pagila или chinook, если optional sample установлен
 ```
 
 Имена `mysql` и `postgres` применяются только внутри Docker-сети.
@@ -150,7 +151,7 @@ Host: 127.0.0.1
 Port: значение MYSQL_PORT
 User: значение DB_USER
 Password: значение DB_PASSWORD
-Database: demo
+Database: demo, sakila или chinook, если optional sample установлен
 ```
 
 PostgreSQL:
@@ -160,7 +161,7 @@ Host: 127.0.0.1
 Port: значение POSTGRES_PORT
 User: значение DB_USER
 Password: значение DB_PASSWORD
-Database: demo или pagila, если Pagila установлена
+Database: demo, pagila или chinook, если optional sample установлен
 ```
 
 CLI внутри контейнеров не требует размещать пароль в shell history:
@@ -177,14 +178,15 @@ make postgres-user
 MySQL:
 
 - `demo` — обязательная база с таблицей `demo.demo_users`;
-- `world` — опциональная официальная учебная база;
-- `sakila` — опциональная официальная учебная база.
+- `sakila` — опциональная официальная учебная база;
+- `chinook` — опциональная база с музыкальным каталогом и продажами.
 
 PostgreSQL:
 
-- `demo` — обязательная база с таблицей `public.demo_users`.
+- `demo` — обязательная база с таблицей `public.demo_users`;
 - `pagila` — опциональный PostgreSQL-порт Sakila с фильмами, актёрами,
-  клиентами и прокатом.
+  клиентами и прокатом;
+- `chinook` — та же модель музыкального каталога и продаж, что в MySQL.
 
 Обе таблицы `demo_users` имеют одинаковую смысловую структуру:
 
@@ -215,7 +217,7 @@ MySQL использует `TIMESTAMP`, PostgreSQL — `timestamptz`. В обе 
 
 ## Optional samples MySQL
 
-Скачать официальные архивы World и Sakila и подготовить локальные SQL-файлы:
+Скачать Chinook и официальный архив Sakila и подготовить локальные SQL-файлы:
 
 ```bash
 make samples-mysql
@@ -239,22 +241,25 @@ MySQL выполняет init-файлы только при первом зап
 `MYSQL_DATA_DIR`. Загрузка samples не изменяет данные и не перезапускает
 контейнеры автоматически.
 
-Файлы сохраняются детерминированно:
+`make samples-mysql` больше не скачивает World. Файлы сохраняются
+детерминированно:
 
 ```text
 samples/mysql/
-├── 010_world.sql
+├── .gitkeep
+├── 010_chinook.sql
 ├── 020_sakila_schema.sql
 └── 021_sakila_data.sql
 ```
 
 Эти загруженные SQL-файлы считаются локально сгенерированными и исключены из
 Git. `initdb/mysql/050_load_optional_samples.sh` пропускает отсутствующие
-samples и прекращает init с ошибкой при неполной паре schema/data Sakila.
+samples, безопасно пропускает уже полную `chinook` и прекращает init с ошибкой
+при неполной/неожиданной `chinook` или неполной паре schema/data Sakila.
 
-## Optional sample PostgreSQL: Pagila
+## Optional samples PostgreSQL: Pagila и Chinook
 
-Подготовить Pagila отдельной явной командой:
+Подготовить Pagila и Chinook отдельной явной командой:
 
 ```bash
 make samples-postgres
@@ -279,10 +284,11 @@ make samples-postgres
 make reinit-postgres CONFIRM=1
 ```
 
-`make samples-postgres` только скачивает и проверяет SQL: команда не запускает
-контейнеры, не удаляет данные и не выполняет reinit. Официальный PostgreSQL
-entrypoint читает `/docker-entrypoint-initdb.d` лишь при инициализации пустого
-`POSTGRES_DATA_DIR`, поэтому добавление файлов не меняет существующую базу.
+`make samples-postgres` только скачивает и проверяет SQL обеих баз: команда не
+запускает контейнеры, не удаляет данные и не выполняет reinit. Официальный
+PostgreSQL entrypoint читает `/docker-entrypoint-initdb.d` лишь при
+инициализации пустого `POSTGRES_DATA_DIR`, поэтому добавление файлов не меняет
+существующую базу.
 
 Используется upstream
 [`devrimgunduz/pagila`](https://github.com/devrimgunduz/pagila), закреплённый
@@ -292,22 +298,50 @@ entrypoint читает `/docker-entrypoint-initdb.d` лишь при иници
 альтернативный insert-файл не используется. Pagila распространяется по
 PostgreSQL License.
 
-Проверенная ревизия использует схему `public`, стандартные PL/pgSQL-функции и
-`COPY FROM stdin`; дополнительных extensions, пакетов или собственного Docker
-image не требуется. Подготовленные файлы сохраняются детерминированно:
+Проверенная ревизия Pagila использует схему `public`, стандартные
+PL/pgSQL-функции и `COPY FROM stdin`; дополнительных extensions, пакетов или
+собственного Docker image не требуется. Подготовленные файлы сохраняются
+детерминированно:
 
 ```text
 samples/postgres/
 ├── 010_pagila_schema.sql
-└── 020_pagila_data.sql
+├── 020_pagila_data.sql
+└── 030_chinook.sql
 ```
 
-Оба файла локальные и исключены из Git. Отсутствие пары безопасно пропускается,
-а наличие только одного файла останавливает чистую инициализацию с ошибкой.
-Повторный загрузчик пропускает уже полную Pagila с ожидаемым владельцем, но не
-удаляет и не исправляет автоматически неполную базу или неверное владение:
-для этого требуется явный `make reinit-postgres CONFIRM=1`. Штатные команды
-очистки data-каталогов не удаляют `samples/postgres`.
+Все файлы локальные и исключены из Git. Отсутствие пары Pagila безопасно
+пропускается, а наличие только одного файла останавливает чистую инициализацию
+с ошибкой. Chinook обрабатывается независимо: она также optional. Повторный
+загрузчик отдельно пропускает уже полные Pagila и Chinook с ожидаемым
+владельцем, но не удаляет и не исправляет автоматически неполную базу или
+неверное владение. Для этого требуется явный
+`make reinit-postgres CONFIRM=1`. Штатные команды очистки data-каталогов не
+удаляют `samples/postgres`.
+
+## Источник и безопасная подготовка Chinook
+
+Оба варианта Chinook берутся только из официального upstream
+[`lerocha/chinook-database`](https://github.com/lerocha/chinook-database) на
+immutable commit
+[`4a944a942426e1f3263fe539155fb7ef92b04b4a`](https://github.com/lerocha/chinook-database/commit/4a944a942426e1f3263fe539155fb7ef92b04b4a),
+соответствующем release `v1.4.5`. Chinook распространяется по MIT license;
+полный copyright и permission notice из закреплённого `LICENSE.md` добавляется
+SQL-комментариями в каждую подготовленную локальную копию.
+
+Upstream SQL нельзя выполнять напрямую: он содержит `DROP DATABASE`,
+`CREATE DATABASE` и выбор базы. Команды подготовки проверяют Git blob SHA,
+версию, целевую СУБД, ключевые таблицы и точный формат трёх setup-строк, затем
+удаляют только эти известные строки. Готовый SQL повторно проверяется на
+отсутствие database-level setup и публикуется атомарно вместе с остальными
+sample-файлами. Он загружается только в заранее выбранную базу `chinook`.
+
+Chinook выбрана вместо MySQL World, потому что upstream явно указывает MIT
+license и предоставляет одинаковые MySQL/PostgreSQL datasets. Существующая
+база `world` автоматически не удаляется. Чтобы убрать старую `world` и
+получить `chinook` в уже инициализированном MySQL, сначала подготовьте samples,
+затем осознанно выполните `make reinit-mysql CONFIRM=1`; эта команда удалит
+данные только MySQL.
 
 ## Инициализация и порядок файлов
 
@@ -371,7 +405,10 @@ Docker logs.
 `DB_USER`, а schema и data загружаются от его имени. Закреплённый upstream dump
 содержит `OWNER TO postgres`; загрузчик безопасно заменяет эти фиксированные
 owner-выражения на quoted psql-переменную `DB_USER`, не меняя локальные
-SQL-файлы и не повышая права роли.
+SQL-файлы и не повышая права роли. PostgreSQL Chinook также создаётся с
+владельцем `DB_USER`; этой роли принадлежат схема `public`, таблицы и все
+созданные в ней последовательности, представления, функции и пользовательские
+типы. Пароли не хардкодятся и берутся только из environment контейнеров.
 
 ## Проверки
 
@@ -385,16 +422,20 @@ make check-postgres-access
 MySQL-проверка требует `demo.demo_users`, все пять обязательных email,
 проверяет temporary read/write и пробный откатываемый `INSERT` в `demo_users`.
 Она также проверяет доступ ко всем существующим пользовательским базам и
-`world.city`/`sakila.actor` только при наличии соответствующего sample.
+`sakila.actor` только при наличии sample. Для optional Chinook отдельно
+проверяются таблицы с точным регистром `Artist`, `Album`, `Track`, `Customer`,
+`Invoice`, данные, join и откатываемая запись.
 
 PostgreSQL-проверка подключается как `DB_USER` по TCP к работающему серверу,
 проверяет владение базой и `demo_users`, все пять обязательных email, создаёт
 временную таблицу, записывает и читает строку, выполняет откатываемый `INSERT`
 в `demo_users` и подтверждает отсутствие всех административных атрибутов роли.
-Наличие Pagila определяется по фактической базе, а не по sample-файлам. Если
-она установлена, дополнительно проверяются владелец, таблицы `actor`, `film`,
-`customer`, `rental`, наличие данных, читающий join, временный объект и
-откатываемый `INSERT` без остаточных данных.
+Наличие Pagila и Chinook определяется независимо по фактическим базам, а не по
+sample-файлам. Для каждой установленной базы дополнительно проверяются
+владелец, ожидаемые таблицы и владельцы объектов, данные, читающий join,
+временный объект и откатываемый `INSERT` без остаточных данных. Поэтому
+поддерживаются все варианты: только `demo`, `demo + pagila`,
+`demo + chinook`, `demo + pagila + chinook`.
 
 Для полного стенда:
 
@@ -404,6 +445,21 @@ make check
 
 Команда проверяет Compose-конфигурацию и фактический доступ `DB_USER` к обеим
 СУБД.
+
+## Troubleshooting optional Chinook
+
+Если загрузчик сообщает, что `chinook` уже существует, но неполна или имеет
+неожиданного владельца, он намеренно ничего не удаляет и не пытается исправить
+базу поверх существующих объектов. Проверьте, что sample подготовлен текущей
+командой `make samples-mysql` или `make samples-postgres`, сохраните нужные
+данные, затем при необходимости явно выполните reinit соответствующей СУБД с
+`CONFIRM=1`. Reinit удаляет data-каталог выбранной СУБД; обычные `make up*`
+этого не делают.
+
+Если подготовленный `010_chinook.sql` или `030_chinook.sql` отклонён до
+загрузки, не запускайте raw upstream SQL вручную. Повторите подготовку и
+проверьте сеть; несовпадение Git blob SHA или формата setup-строк считается
+ошибкой безопасности.
 
 ## Остановка и очистка данных
 
@@ -445,8 +501,8 @@ make reinit-all CONFIRM=1
 | `make init` | Создать `.docker.env`, data/init/samples-каталоги и проверить скрипты |
 | `make pull` | Скачать три образа |
 | `make config` | Проверить итоговую Compose-конфигурацию |
-| `make samples-mysql` | Подготовить optional World и Sakila без запуска контейнеров |
-| `make samples-postgres` | Подготовить optional Pagila без запуска контейнеров |
+| `make samples-mysql` | Подготовить optional Chinook и Sakila без запуска контейнеров |
+| `make samples-postgres` | Подготовить optional Pagila и Chinook без запуска контейнеров |
 | `make status` | Показать MySQL, PostgreSQL и профильный Adminer |
 | `make logs` | Смотреть общие логи |
 | `make log postgres` | Смотреть лог выбранного сервиса (`SERVICE=postgres` также поддерживается) |
