@@ -9,7 +9,7 @@ SHELL := bash
 .PHONY: help init check-env pull config up up-no-ui up-mysql up-mysql-ui \
         up-postgres up-postgres-ui up-ui down-ui wait-mysql wait-postgres \
         down status logs log in mysql mysql-user postgres postgres-user sh \
-        samples-mysql samples-postgres mysql-grants mysql-import check check-mysql-access \
+        samples-mysql samples-postgres mysql-grants mysql-import postgres-import check check-mysql-access \
         check-postgres-access dump restore clean-mysql clean-postgres clean-all \
         reinit-mysql reinit-postgres reinit-all test-storage-paths
 
@@ -78,6 +78,8 @@ help:
 	@echo "  make samples-mysql                скачать optional samples Chinook и Sakila"
 	@echo "  make samples-postgres             скачать optional samples Pagila и Chinook"
 	@echo "  make test-storage-paths           проверить защиту managed storage paths"
+	@echo "  make mysql-import FILE=... DATABASE=...   импортировать доверенный text SQL в MySQL"
+	@echo "  make postgres-import FILE=... DATABASE=... импортировать доверенный text SQL в PostgreSQL"
 	@echo "  make clean-{mysql,postgres,all} CONFIRM=1"
 	@echo "  make reinit-{mysql,postgres,all} CONFIRM=1"
 
@@ -476,13 +478,45 @@ samples-postgres: check-env
 mysql-grants: wait-mysql
 	$(COMPOSE) exec -T mysql /docker-entrypoint-initdb.d/090_grant_training_access.sh
 
-mysql-import: wait-mysql
-	@test -n "$(FILE)" || { echo "ERROR: укажите FILE=path/to/database.sql" >&2; exit 1; }
-	@test -f "$(FILE)" || { echo "ERROR: файл $(FILE) не найден" >&2; exit 1; }
-	@echo "Импортируем $(FILE) от имени root..."
-	$(COMPOSE) exec -T mysql sh -c 'MYSQL_PWD="$$MYSQL_ROOT_PASSWORD" mysql -uroot' < "$(FILE)"
-	@$(MAKE) --no-print-directory mysql-grants
+mysql-import:
+	@set -Eeuo pipefail; \
+	if [[ -z "$${FILE:-}" ]]; then echo "ERROR: укажите FILE=path/to/file.sql" >&2; exit 1; fi; \
+	if [[ -z "$${DATABASE:-}" ]]; then echo "ERROR: укажите DATABASE=database_name" >&2; exit 1; fi; \
+	if [[ ! -f "$${FILE}" || ! -r "$${FILE}" || ! -s "$${FILE}" ]]; then echo "ERROR: FILE должен быть существующим читаемым непустым обычным файлом" >&2; exit 1; fi; \
+	if [[ ! "$${DATABASE}" =~ ^[a-z][a-z0-9_]{0,62}$$ ]]; then echo "ERROR: недопустимое имя MySQL database: $${DATABASE}" >&2; exit 1; fi; \
+	case "$${DATABASE}" in mysql|information_schema|performance_schema|sys) echo "ERROR: импорт в системную MySQL database запрещён: $${DATABASE}" >&2; exit 1 ;; esac
+	@$(MAKE) --no-print-directory wait-mysql
+	@set -Eeuo pipefail; \
+	$(LOAD_ENV) \
+	if ! $(COMPOSE) exec -T -e IMPORT_DATABASE="$${DATABASE}" mysql sh -c 'MYSQL_PWD="$$DB_PASSWORD" exec mysql --host=127.0.0.1 --user="$$DB_USER" --batch --skip-column-names "$$IMPORT_DATABASE" --execute "SELECT 1;"' >/dev/null; then \
+		echo "ERROR: DB_USER cannot connect to MySQL database $${DATABASE}; import was not started" >&2; exit 1; \
+	fi; \
+	echo "Импортируем $${FILE} в MySQL database $${DATABASE} от имени DB_USER..."; \
+	$(COMPOSE) exec -T -e IMPORT_DATABASE="$${DATABASE}" mysql sh -c 'MYSQL_PWD="$$DB_PASSWORD" exec mysql --host=127.0.0.1 --user="$$DB_USER" --binary-mode=1 "$$IMPORT_DATABASE"' < "$${FILE}"; \
+	if ! $(COMPOSE) exec -T -e IMPORT_DATABASE="$${DATABASE}" mysql sh -c 'MYSQL_PWD="$$DB_PASSWORD" exec mysql --host=127.0.0.1 --user="$$DB_USER" --batch --skip-column-names "$$IMPORT_DATABASE" --execute "SELECT 1;"' >/dev/null; then \
+		echo "ERROR: DB_USER cannot reconnect to MySQL database $${DATABASE} after import" >&2; exit 1; \
+	fi
 	@$(MAKE) --no-print-directory check-mysql-access
+
+postgres-import:
+	@set -Eeuo pipefail; \
+	if [[ -z "$${FILE:-}" ]]; then echo "ERROR: укажите FILE=path/to/file.sql" >&2; exit 1; fi; \
+	if [[ -z "$${DATABASE:-}" ]]; then echo "ERROR: укажите DATABASE=database_name" >&2; exit 1; fi; \
+	if [[ ! -f "$${FILE}" || ! -r "$${FILE}" || ! -s "$${FILE}" ]]; then echo "ERROR: FILE должен быть существующим читаемым непустым обычным файлом" >&2; exit 1; fi; \
+	if [[ ! "$${DATABASE}" =~ ^[a-z][a-z0-9_]{0,62}$$ ]]; then echo "ERROR: недопустимое имя PostgreSQL database: $${DATABASE}" >&2; exit 1; fi; \
+	case "$${DATABASE}" in postgres|template0|template1) echo "ERROR: импорт в системную PostgreSQL database запрещён: $${DATABASE}" >&2; exit 1 ;; esac
+	@$(MAKE) --no-print-directory wait-postgres
+	@set -Eeuo pipefail; \
+	$(LOAD_ENV) \
+	if ! $(COMPOSE) exec -T -e IMPORT_DATABASE="$${DATABASE}" postgres sh -c 'PGPASSWORD="$$DB_PASSWORD" exec psql --host=127.0.0.1 --username="$$DB_USER" --dbname="$$IMPORT_DATABASE" --no-psqlrc --set=ON_ERROR_STOP=1 --command="SELECT 1;"' >/dev/null; then \
+		echo "ERROR: DB_USER cannot connect to PostgreSQL database $${DATABASE}; import was not started" >&2; exit 1; \
+	fi; \
+	echo "Импортируем $${FILE} в PostgreSQL database $${DATABASE} от имени DB_USER..."; \
+	$(COMPOSE) exec -T -e IMPORT_DATABASE="$${DATABASE}" postgres sh -c 'PGPASSWORD="$$DB_PASSWORD" exec psql --host=127.0.0.1 --username="$$DB_USER" --dbname="$$IMPORT_DATABASE" --no-psqlrc --set=ON_ERROR_STOP=1 --file=-' < "$${FILE}"; \
+	if ! $(COMPOSE) exec -T -e IMPORT_DATABASE="$${DATABASE}" postgres sh -c 'PGPASSWORD="$$DB_PASSWORD" exec psql --host=127.0.0.1 --username="$$DB_USER" --dbname="$$IMPORT_DATABASE" --no-psqlrc --set=ON_ERROR_STOP=1 --command="SELECT 1;"' >/dev/null; then \
+		echo "ERROR: DB_USER cannot reconnect to PostgreSQL database $${DATABASE} after import" >&2; exit 1; \
+	fi
+	@$(MAKE) --no-print-directory check-postgres-access
 
 check-mysql-access: wait-mysql
 	$(COMPOSE) exec -T mysql /docker-entrypoint-initdb.d/099_check_training_access.sh
