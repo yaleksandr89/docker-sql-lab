@@ -295,8 +295,11 @@ PostgreSQL entrypoint читает `/docker-entrypoint-initdb.d` лишь при
 на immutable commit
 [`5ba5a57aeb159f75f02aca2432d3c262186d13d3`](https://github.com/devrimgunduz/pagila/commit/5ba5a57aeb159f75f02aca2432d3c262186d13d3).
 Загружаются только `pagila-schema.sql` и COPY-вариант `pagila-data.sql`;
-альтернативный insert-файл не используется. Pagila распространяется по
-PostgreSQL License.
+альтернативный insert-файл не используется. Точный текст `LICENSE.txt`
+закреплённой ревизии проверяется по Git blob SHA и переносится в оба
+подготовленных SQL-файла. Upstream README называет лицензию PostgreSQL License;
+полный notice и provenance приведены в
+[`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
 
 Проверенная ревизия Pagila использует схему `public`, стандартные
 PL/pgSQL-функции и `COPY FROM stdin`; дополнительных extensions, пакетов или
@@ -548,4 +551,5 @@ samples/postgres/*.sql
 
 Автор: **Александр Юрченко**
 
-Лицензия: MIT
+Лицензия проекта: [MIT](LICENSE.md). Условия сторонних optional samples:
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

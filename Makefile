@@ -32,9 +32,14 @@ COMPOSE_UI = $(COMPOSE) --profile ui
 
 MYSQL_SAMPLES_TMP_DIR := .tmp/mysql-samples
 SAKILA_URL := https://downloads.mysql.com/docs/sakila-db.zip
+SAKILA_SHA256 := c2ecb3dec28d752241ccfca02974ba970de3c3fc5d98887fd3f9d5843f946672
 POSTGRES_SAMPLES_TMP_DIR := .tmp/postgres-samples
 PAGILA_REF := 5ba5a57aeb159f75f02aca2432d3c262186d13d3
 PAGILA_BASE_URL := https://raw.githubusercontent.com/devrimgunduz/pagila/$(PAGILA_REF)
+PAGILA_LICENSE_URL := $(PAGILA_BASE_URL)/LICENSE.txt
+PAGILA_LICENSE_BLOB := c6078c708c6f55b56e24f3687c591ca12df567ca
+PAGILA_SCHEMA_BLOB := 23718a3adef90ced002e19ad4e1ac98d22aa5870
+PAGILA_DATA_BLOB := b7c016861fd0f84008645153c6a1d9e5a99b9cc6
 CHINOOK_REF := 4a944a942426e1f3263fe539155fb7ef92b04b4a
 CHINOOK_BASE_URL := https://raw.githubusercontent.com/lerocha/chinook-database/$(CHINOOK_REF)
 CHINOOK_LICENSE_URL := $(CHINOOK_BASE_URL)/LICENSE.md
@@ -260,6 +265,7 @@ samples-mysql: check-env
 	@command -v curl >/dev/null || { echo "ERROR: требуется curl" >&2; exit 1; }
 	@command -v unzip >/dev/null || { echo "ERROR: требуется unzip" >&2; exit 1; }
 	@command -v git >/dev/null || { echo "ERROR: требуется git для проверки Git blob SHA" >&2; exit 1; }
+	@command -v sha256sum >/dev/null || { echo "ERROR: требуется sha256sum" >&2; exit 1; }
 	@set -Eeuo pipefail; $(LOAD_ENV) \
 	tmp_root="$(MYSQL_SAMPLES_TMP_DIR)"; \
 	download_dir="$${tmp_root}/download"; \
@@ -296,6 +302,7 @@ samples-mysql: check-env
 		"$(CHINOOK_MYSQL_URL)" -o "$${download_dir}/Chinook_MySql.sql"; \
 	curl --fail --location --retry 3 --retry-all-errors --connect-timeout 15 --max-time 180 \
 		"$(SAKILA_URL)" -o "$${download_dir}/sakila-db.zip"; \
+	echo "$(SAKILA_SHA256)  $${download_dir}/sakila-db.zip" | sha256sum --check --status || { echo "ERROR: неожиданный SHA-256 sakila-db.zip" >&2; exit 1; }; \
 	test "$$(git hash-object --no-filters "$${download_dir}/LICENSE.md")" = "$(CHINOOK_LICENSE_BLOB)" || { echo "ERROR: неожиданный Git blob SHA LICENSE.md" >&2; exit 1; }; \
 	test "$$(git hash-object --no-filters "$${download_dir}/Chinook_MySql.sql")" = "$(CHINOOK_MYSQL_BLOB)" || { echo "ERROR: неожиданный Git blob SHA Chinook_MySql.sql" >&2; exit 1; }; \
 	test -s "$${download_dir}/LICENSE.md" || { echo "ERROR: LICENSE.md пуст" >&2; exit 1; }; \
@@ -331,6 +338,10 @@ samples-mysql: check-env
 	sakila_data_source="$$(find "$${download_dir}/sakila" -type f -name sakila-data.sql -print -quit)"; \
 	test -n "$$sakila_schema_source" || { echo "ERROR: архив Sakila не содержит sakila-schema.sql" >&2; exit 1; }; \
 	test -n "$$sakila_data_source" || { echo "ERROR: архив Sakila не содержит sakila-data.sql" >&2; exit 1; }; \
+	for sakila_source in "$$sakila_schema_source" "$$sakila_data_source"; do \
+		grep -Fq 'Redistribution and use in source and binary forms' "$$sakila_source" || { echo "ERROR: в $${sakila_source} отсутствует ожидаемый New BSD notice" >&2; exit 1; }; \
+		grep -Fq 'THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS' "$$sakila_source" || { echo "ERROR: в $${sakila_source} отсутствует ожидаемый New BSD disclaimer" >&2; exit 1; }; \
+	done; \
 	cp "$$sakila_schema_source" "$${ready_dir}/020_sakila_schema.sql"; \
 	cp "$$sakila_data_source" "$${ready_dir}/021_sakila_data.sql"; \
 	if [[ -f "$${target_dir}/.gitkeep" ]]; then cp "$${target_dir}/.gitkeep" "$${ready_dir}/.gitkeep"; else touch "$${ready_dir}/.gitkeep"; fi; \
@@ -383,9 +394,15 @@ samples-postgres: check-env
 	curl --fail --location --retry 3 --retry-all-errors --connect-timeout 15 --max-time 180 \
 		"$(PAGILA_BASE_URL)/pagila-data.sql" -o "$${download_dir}/pagila-data.sql"; \
 	curl --fail --location --retry 3 --retry-all-errors --connect-timeout 15 --max-time 180 \
+		"$(PAGILA_LICENSE_URL)" -o "$${download_dir}/LICENSE.pagila.txt"; \
+	curl --fail --location --retry 3 --retry-all-errors --connect-timeout 15 --max-time 180 \
 		"$(CHINOOK_LICENSE_URL)" -o "$${download_dir}/LICENSE.md"; \
 	curl --fail --location --retry 3 --retry-all-errors --connect-timeout 15 --max-time 180 \
 		"$(CHINOOK_POSTGRES_URL)" -o "$${download_dir}/Chinook_PostgreSql.sql"; \
+	test "$$(git hash-object --no-filters "$${download_dir}/LICENSE.pagila.txt")" = "$(PAGILA_LICENSE_BLOB)" || { echo "ERROR: неожиданный Git blob SHA Pagila LICENSE.txt" >&2; exit 1; }; \
+	test "$$(git hash-object --no-filters "$${download_dir}/pagila-schema.sql")" = "$(PAGILA_SCHEMA_BLOB)" || { echo "ERROR: неожиданный Git blob SHA pagila-schema.sql" >&2; exit 1; }; \
+	test "$$(git hash-object --no-filters "$${download_dir}/pagila-data.sql")" = "$(PAGILA_DATA_BLOB)" || { echo "ERROR: неожиданный Git blob SHA pagila-data.sql" >&2; exit 1; }; \
+	test -s "$${download_dir}/LICENSE.pagila.txt" || { echo "ERROR: Pagila LICENSE.txt пуст" >&2; exit 1; }; \
 	test -s "$${download_dir}/pagila-schema.sql" || { echo "ERROR: pagila-schema.sql пуст" >&2; exit 1; }; \
 	test -s "$${download_dir}/pagila-data.sql" || { echo "ERROR: pagila-data.sql пуст" >&2; exit 1; }; \
 	grep -Fq 'CREATE TABLE public.actor' "$${download_dir}/pagila-schema.sql" || { echo "ERROR: в schema нет таблицы actor" >&2; exit 1; }; \
@@ -411,8 +428,24 @@ samples-postgres: check-env
 		test "$$(grep -Fxc "$${expected_line}" "$${chinook_source}" || true)" = 1 || { echo "ERROR: неожиданный формат database-level строки: $${expected_line}" >&2; exit 1; }; \
 	done; \
 	test "$$(awk 'BEGIN { in_comment = 0; count = 0 } { upper = toupper($$0) } /^[[:space:]]*\/\*/ { in_comment = 1 } !in_comment && (upper ~ /^[[:space:]]*(DROP|CREATE)[[:space:]]+DATABASE/ || upper ~ /^[[:space:]]*\\(C|CONNECT)([[:space:]]|$$)/) { count++ } /\*\// { in_comment = 0 } END { print count }' "$${chinook_source}")" = 3 || { echo "ERROR: Chinook PostgreSQL содержит неожиданные database-level statements" >&2; exit 1; }; \
-	cp "$${download_dir}/pagila-schema.sql" "$${ready_dir}/010_pagila_schema.sql"; \
-	cp "$${download_dir}/pagila-data.sql" "$${ready_dir}/020_pagila_data.sql"; \
+	sed 's/\r$$//' "$${download_dir}/LICENSE.pagila.txt" > "$${download_dir}/LICENSE.pagila.normalized.txt"; \
+	{ \
+		echo '-- Pagila license notice (upstream LICENSE.txt):'; \
+		sed 's/^/-- /' "$${download_dir}/LICENSE.pagila.normalized.txt"; \
+		echo; \
+		cat "$${download_dir}/pagila-schema.sql"; \
+	} > "$${ready_dir}/010_pagila_schema.sql"; \
+	{ \
+		echo '-- Pagila license notice (upstream LICENSE.txt):'; \
+		sed 's/^/-- /' "$${download_dir}/LICENSE.pagila.normalized.txt"; \
+		echo; \
+		cat "$${download_dir}/pagila-data.sql"; \
+	} > "$${ready_dir}/020_pagila_data.sql"; \
+	while IFS= read -r license_line || [[ -n "$${license_line}" ]]; do \
+		for pagila_ready_file in "$${ready_dir}/010_pagila_schema.sql" "$${ready_dir}/020_pagila_data.sql"; do \
+			grep -Fxq -- "-- $${license_line}" "$${pagila_ready_file}" || { echo "ERROR: Pagila notice перенесён не полностью в $${pagila_ready_file}" >&2; exit 1; }; \
+		done; \
+	done < "$${download_dir}/LICENSE.pagila.normalized.txt"; \
 	{ \
 		echo '-- Chinook Database MIT license notice (upstream LICENSE.md):'; \
 		sed 's/^/-- /' "$${download_dir}/LICENSE.normalized.md"; \
