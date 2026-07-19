@@ -27,6 +27,9 @@ jobs:
           docker --version
           docker compose version
 
+      - name: Test managed storage path validation
+        run: make test-storage-paths
+
       - name: Initialize environment
         run: make init
 
@@ -38,6 +41,9 @@ jobs:
 
       - name: Check complete database stand
         run: make check
+
+      - name: Smoke-test trusted SQL imports
+        run: make test-sql-imports
 
       - name: Confirm databases are running without Adminer
         run: |

@@ -11,7 +11,7 @@ SHELL := bash
         down status logs log in mysql mysql-user postgres postgres-user sh \
         samples-mysql samples-postgres mysql-grants mysql-import postgres-import check check-mysql-access \
         check-postgres-access dump restore clean-mysql clean-postgres clean-all \
-        reinit-mysql reinit-postgres reinit-all test-storage-paths
+        reinit-mysql reinit-postgres reinit-all test-storage-paths test-sql-imports
 
 PROJECT_DIR := $(CURDIR)
 ENV_FILE_EXAMPLE := .docker.env.example
@@ -78,6 +78,7 @@ help:
 	@echo "  make samples-mysql                скачать optional samples Chinook и Sakila"
 	@echo "  make samples-postgres             скачать optional samples Pagila и Chinook"
 	@echo "  make test-storage-paths           проверить защиту managed storage paths"
+	@echo "  make test-sql-imports             проверить trusted SQL imports в запущенных СУБД"
 	@echo "  make mysql-import FILE=... DATABASE=...   импортировать доверенный text SQL в MySQL"
 	@echo "  make postgres-import FILE=... DATABASE=... импортировать доверенный text SQL в PostgreSQL"
 	@echo "  make clean-{mysql,postgres,all} CONFIRM=1"
@@ -114,6 +115,9 @@ check-env: $(ENV_FILE)
 
 test-storage-paths:
 	@./scripts/test-storage-paths.sh
+
+test-sql-imports:
+	@./scripts/test-sql-imports.sh
 
 init: check-env
 	@echo "Проверяем каталоги, конфигурацию и init-скрипты..."
