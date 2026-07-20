@@ -391,8 +391,6 @@ mantienen sus licencias upstream; fuentes, revisiones fijadas, integridad y
 textos están en
 [THIRD_PARTY_NOTICES.md](../../THIRD_PARTY_NOTICES.md).
 
----
-
 <p align="center">
   <a href="https://yaleksandr89.github.io/" title="yaleksandr89.github.io">
     <img
@@ -402,6 +400,5 @@ textos están en
     >
   </a>
   <br>
-  <strong>Александр Юрченко</strong> ·
   <a href="https://yaleksandr89.github.io/">yaleksandr89.github.io</a>
 </p>

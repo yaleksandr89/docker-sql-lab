@@ -459,6 +459,5 @@ Docker SQL Lab распространяется по лицензии MIT; см.
     >
   </a>
   <br>
-  <strong>Александр Юрченко</strong> ·
   <a href="https://yaleksandr89.github.io/">yaleksandr89.github.io</a>
 </p>

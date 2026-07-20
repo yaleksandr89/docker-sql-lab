@@ -395,8 +395,6 @@ samples conservent leurs licences upstream ; sources, révisions épinglées,
 intégrité et textes figurent dans
 [THIRD_PARTY_NOTICES.md](../../THIRD_PARTY_NOTICES.md).
 
----
-
 <p align="center">
   <a href="https://yaleksandr89.github.io/" title="yaleksandr89.github.io">
     <img
@@ -406,6 +404,5 @@ intégrité et textes figurent dans
     >
   </a>
   <br>
-  <strong>Александр Юрченко</strong> ·
   <a href="https://yaleksandr89.github.io/">yaleksandr89.github.io</a>
 </p>
