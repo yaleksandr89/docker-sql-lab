@@ -390,3 +390,18 @@ Docker SQL Lab usa la licencia MIT: [LICENSE.md](../../LICENSE.md). Los samples
 mantienen sus licencias upstream; fuentes, revisiones fijadas, integridad y
 textos están en
 [THIRD_PARTY_NOTICES.md](../../THIRD_PARTY_NOTICES.md).
+
+---
+
+<p align="center">
+  <a href="https://yaleksandr89.github.io/" title="yaleksandr89.github.io">
+    <img
+      src="../assets/ya-logo-dark-50px.png"
+      alt="YA"
+      width="32"
+    >
+  </a>
+  <br>
+  <strong>Александр Юрченко</strong> ·
+  <a href="https://yaleksandr89.github.io/">yaleksandr89.github.io</a>
+</p>

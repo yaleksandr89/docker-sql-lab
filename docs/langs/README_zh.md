@@ -376,3 +376,18 @@ firewall、数据库选择和非管理员 `DB_USER` 凭据。
 Docker SQL Lab 使用 MIT License，见 [LICENSE.md](../../LICENSE.md)。
 可选 samples 保留 upstream 许可；来源、固定 revision、完整性信息和许可
 文本见 [THIRD_PARTY_NOTICES.md](../../THIRD_PARTY_NOTICES.md)。
+
+---
+
+<p align="center">
+  <a href="https://yaleksandr89.github.io/" title="yaleksandr89.github.io">
+    <img
+      src="../assets/ya-logo-dark-50px.png"
+      alt="YA"
+      width="32"
+    >
+  </a>
+  <br>
+  <strong>Александр Юрченко</strong> ·
+  <a href="https://yaleksandr89.github.io/">yaleksandr89.github.io</a>
+</p>
