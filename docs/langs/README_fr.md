@@ -98,7 +98,7 @@ Préparez les samples avant la première initialisation ; les entrypoints les ch
 > **Attention :** si un répertoire data a été initialisé sans samples, leur ajout exige un backup et une réinitialisation destructive confirmée.
 
 <details>
-<summary>Le laboratoire a déjà démarré : ajouter ou réutiliser les samples</summary>
+<summary>📦 Le laboratoire a déjà démarré : ajouter ou réutiliser les samples</summary>
 
 **Déjà initialisé sans samples.** `make up` n'applique pas les nouveaux fichiers init/sample. Sauvegardez les données importantes, puis choisissez l'option adaptée :
 

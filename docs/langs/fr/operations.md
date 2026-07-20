@@ -28,7 +28,7 @@ MySQL `demo`, pas PostgreSQL. `clean-*` et `reinit-*` sont destructifs et
 exigent `CONFIRM=1` exact.
 
 <details>
-<summary>Référence complète des targets Make publics</summary>
+<summary>📋 Référence complète des targets Make publics</summary>
 
 `make help` affiche la liste concise.
 
@@ -96,7 +96,9 @@ import, ni un sandbox ni une preuve de sécurité pour du SQL non fiable.
 <a id="section-storage-path-safety"></a>
 ## Sécurité des storage paths
 
-`make check-env` exécute `scripts/validate-storage-paths.sh`. Les data
+`make check-env` exécute
+[`scripts/validate-storage-paths.sh`](../../../scripts/validate-storage-paths.sh).
+Les data
 paths doivent rester strictement sous `data/`, les sample paths sous
 `samples/` ; symlinks, chemins égaux, imbriqués, chevauchants ou réservés
 sont refusés. `make test-storage-paths` teste ces règles sans Docker runtime.
@@ -155,7 +157,5 @@ Les commandes unitaires ne suppriment que les données du SGBD choisi ; `all`
 supprime celles des deux. Configuration, init, samples et backups restent en
 place. La réinitialisation redémarre et contrôle les SGBD choisis ;
 `reinit-all` démarre les deux sans Adminer.
-
-[LICENSE.md](../../../LICENSE.md) · [THIRD_PARTY_NOTICES.md](../../../THIRD_PARTY_NOTICES.md)
 
 [Retour au README](../README_fr.md)

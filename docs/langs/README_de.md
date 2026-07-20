@@ -99,7 +99,7 @@ Bereiten Sie Samples vor der ersten Initialisierung vor; die Entrypoints laden s
 > **Warnung:** Wurde ein Datenverzeichnis ohne Samples initialisiert, erfordert das Hinzufügen ein Backup und eine ausdrücklich bestätigte destructive Neuinitialisierung.
 
 <details>
-<summary>Das Lab lief bereits: Samples hinzufügen oder erneut verwenden</summary>
+<summary>📦 Das Lab lief bereits: Samples hinzufügen oder erneut verwenden</summary>
 
 **Ohne Samples initialisiert.** `make up` wendet neue Init-/Sample-Dateien nicht an. Sichern Sie wichtige Daten und wählen Sie dann die passende Variante:
 

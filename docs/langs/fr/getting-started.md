@@ -18,10 +18,9 @@
 ## Prérequis
 
 - Docker Engine ou Docker Desktop avec la commande `docker compose` v2.
-- GNU Make, Bash et les outils Unix utilisés par les scripts (`awk`, `sed`,
-  `grep`, `find`, `realpath` et `stat`).
-- Pour les samples optionnels : `curl` et `git` ; MySQL demande aussi `unzip`
-  et `sha256sum`.
+- GNU Make, Bash et les utilitaires Unix de base en ligne de commande.
+- Environnements recommandés : Linux ; macOS avec Docker Desktop ; ou Windows
+  avec Docker Desktop et WSL2.
 
 Exécutez les commandes depuis la racine du dépôt. La branche par défaut du
 projet est `master`.
@@ -29,8 +28,10 @@ projet est `master`.
 <a id="section-quick-start"></a>
 ## Démarrage rapide
 
-Créez `.docker.env` depuis l’exemple suivi par Git, validez les chemins, créez
-les répertoires de travail et démarrez le laboratoire complet :
+`make init` crée un `.docker.env` local depuis
+[`.docker.env.example`](../../../.docker.env.example), valide les chemins de
+stockage gérés et crée les répertoires de travail. Démarrez ensuite le
+laboratoire complet :
 
 ```bash
 make init
@@ -39,6 +40,14 @@ make up
 
 `make up` démarre MySQL, PostgreSQL et Adminer. Avec la configuration par
 défaut, Adminer est disponible sur `http://127.0.0.1:8081`.
+
+Utilisez `make up-no-ui` pour démarrer les deux SGBD sans Adminer. La base
+obligatoire `demo` est toujours créée à la première initialisation ; les jeux
+de données d’exemple sont optionnels. Pour les inclure à la première
+initialisation, préparez-les avant le premier `make up`. Si les répertoires de
+données sont déjà initialisés, créez une sauvegarde avant une réinitialisation
+confirmée qui supprime les données. Consultez la procédure exacte dans
+[Initialisation et cycle de vie](databases.md#section-initialization).
 
 ```bash
 make status
@@ -62,7 +71,7 @@ bind-mounted.
 Les commandes d’un SGBD n’arrêtent pas l’autre déjà actif ; Adminer se gère séparément.
 
 <details>
-<summary>Tableau complet des modes de démarrage</summary>
+<summary>📋 Tableau complet des modes de démarrage</summary>
 
 | Commande | MySQL | PostgreSQL | Adminer |
 |---|---|---|---|
@@ -154,7 +163,5 @@ BIND_ADDRESS=127.0.0.1
 ports sur toutes les interfaces. Pour un LAN ou VPN, préférez l’adresse d’une
 interface précise. Ce changement doit être volontaire et tenir compte du
 firewall, de la robustesse des mots de passe et de la confiance accordée au réseau.
-
-[LICENSE.md](../../../LICENSE.md) · [THIRD_PARTY_NOTICES.md](../../../THIRD_PARTY_NOTICES.md)
 
 [Retour au README](../README_fr.md)

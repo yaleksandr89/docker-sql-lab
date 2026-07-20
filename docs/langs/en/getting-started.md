@@ -18,10 +18,9 @@
 ## Requirements
 
 - Docker Engine or Docker Desktop with the `docker compose` v2 command.
-- GNU Make, Bash, and standard Unix tools used by the scripts (`awk`, `sed`,
-  `grep`, `find`, `realpath`, and `stat`).
-- For optional sample downloads: `curl` and `git`; MySQL samples additionally
-  require `unzip` and `sha256sum`.
+- GNU Make, Bash, and basic Unix CLI utilities.
+- Recommended environments: Linux; macOS with Docker Desktop; or Windows with
+  Docker Desktop and WSL2.
 
 Run project commands from the repository root. The default project branch is
 `master`.
@@ -29,8 +28,9 @@ Run project commands from the repository root. The default project branch is
 <a id="section-quick-start"></a>
 ## Quick start
 
-Create `.docker.env` from the tracked example, validate the configured paths,
-create the working directories, and start the full lab:
+`make init` creates a local `.docker.env` from
+[`.docker.env.example`](../../../.docker.env.example), validates the managed
+storage paths, and creates the working directories. Then start the full lab:
 
 ```bash
 make init
@@ -39,6 +39,14 @@ make up
 
 `make up` starts MySQL, PostgreSQL, and Adminer. With the default configuration,
 open Adminer at `http://127.0.0.1:8081`.
+
+Use `make up-no-ui` to start both DBMSs without Adminer. The required `demo`
+database is always created during first initialization; sample datasets are
+optional. To include them in the first initialization, prepare them before the
+first `make up`. For initialized data directories, create a backup before a
+confirmed reinitialization that deletes data. See
+[Initialization lifecycle](databases.md#section-initialization) for the exact
+procedure.
 
 Useful follow-up commands:
 
@@ -64,7 +72,7 @@ database data.
 Single-DBMS commands do not stop the other running database; Adminer is managed separately.
 
 <details>
-<summary>Full startup-mode table</summary>
+<summary>📋 Full startup-mode table</summary>
 
 | Command | MySQL | PostgreSQL | Adminer |
 |---|---|---|---|
@@ -164,7 +172,5 @@ publishes the configured ports on every network interface. For VPN or LAN
 access, prefer the address of the specific interface. Change the binding only
 deliberately, after considering firewall rules, password strength, and trust
 in every connected network.
-
-[LICENSE.md](../../../LICENSE.md) · [THIRD_PARTY_NOTICES.md](../../../THIRD_PARTY_NOTICES.md)
 
 [Back to README](../README_en.md)

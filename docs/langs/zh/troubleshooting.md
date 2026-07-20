@@ -56,6 +56,4 @@ loader 不会覆盖或修复意外数据库。重新运行 `make samples-mysql` 
 Compose 网络中使用 `mysql` 或 `postgres`。检查 `BIND_ADDRESS`、
 firewall、数据库选择和非管理员 `DB_USER` 凭据。
 
-[LICENSE.md](../../../LICENSE.md) · [THIRD_PARTY_NOTICES.md](../../../THIRD_PARTY_NOTICES.md)
-
 [返回 README](../README_zh.md)

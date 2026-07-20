@@ -59,6 +59,4 @@ Les clients hôtes utilisent l’adresse publiée et `MYSQL_PORT` ou
 `POSTGRES_PORT` ; Adminer utilise `mysql` ou `postgres` dans Compose. Vérifiez
 `BIND_ADDRESS`, firewall, base sélectionnée et identifiants `DB_USER`.
 
-[LICENSE.md](../../../LICENSE.md) · [THIRD_PARTY_NOTICES.md](../../../THIRD_PARTY_NOTICES.md)
-
 [Retour au README](../README_fr.md)

@@ -28,7 +28,7 @@ decken nur MySQL `demo` ab, nicht PostgreSQL. `clean-*` und `reinit-*`
 sind destruktiv und erfordern exakt `CONFIRM=1`.
 
 <details>
-<summary>Vollständige Referenz der öffentlichen Make targets</summary>
+<summary>📋 Vollständige Referenz der öffentlichen Make targets</summary>
 
 `make help` zeigt die kompakte Liste.
 
@@ -97,7 +97,9 @@ import workflow, keine isolierte Umgebung (`sandbox`) und kein Sicherheitsnachwe
 <a id="section-storage-path-safety"></a>
 ## Sicherheit der storage paths
 
-`make check-env` führt `scripts/validate-storage-paths.sh` aus. Data
+`make check-env` führt
+[`scripts/validate-storage-paths.sh`](../../../scripts/validate-storage-paths.sh)
+aus. Data
 paths müssen strikt unter `data/`, sample paths unter `samples/` liegen;
 Symlinks sowie gleiche, verschachtelte, überlappende oder reservierte Pfade
 werden abgelehnt. `make test-storage-paths` testet dies ohne Docker runtime.
@@ -157,7 +159,5 @@ Einzelne Targets löschen nur das gewählte DBMS-data directory; `all` löscht
 beide. Konfiguration, init, Samples und Backups bleiben erhalten. Reinit
 startet und prüft anschließend die gewählten DBMS; `reinit-all` startet beide
 ohne Adminer.
-
-[LICENSE.md](../../../LICENSE.md) · [THIRD_PARTY_NOTICES.md](../../../THIRD_PARTY_NOTICES.md)
 
 [Zurück zur README](../README_de.md)

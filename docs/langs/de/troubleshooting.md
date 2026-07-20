@@ -60,6 +60,4 @@ Host-Clients verwenden veröffentlichte Adresse und `MYSQL_PORT` oder
 `POSTGRES_PORT`; Adminer verwendet `mysql` oder `postgres` im Compose-Netz.
 Prüfen Sie `BIND_ADDRESS`, Firewall, Datenbankauswahl und `DB_USER`-Zugangsdaten.
 
-[LICENSE.md](../../../LICENSE.md) · [THIRD_PARTY_NOTICES.md](../../../THIRD_PARTY_NOTICES.md)
-
 [Zurück zur README](../README_de.md)

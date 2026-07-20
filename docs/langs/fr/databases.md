@@ -32,8 +32,8 @@ supplémentaires. `make check-env` impose `MYSQL_DATABASE=demo` et
 
 | SGBD | Bases optionnelles | Préparation |
 |---|---|---|
-| MySQL | Chinook, Sakila | `make samples-mysql` |
-| PostgreSQL | Pagila, Chinook | `make samples-postgres` |
+| MySQL | `chinook`, `sakila` | `make samples-mysql` |
+| PostgreSQL | `pagila`, `chinook` | `make samples-postgres` |
 
 <a id="section-sample-preparation"></a>
 ## Préparation des samples
@@ -45,29 +45,10 @@ démarrer les conteneurs ni importer dans une base déjà initialisée. Les
 téléchargements temporaires restent locaux, ne sont pas commités et sont
 placés sous `MYSQL_SAMPLES_DIR` ou `POSTGRES_SAMPLES_DIR`. Provenance,
 intégrité et licences figurent dans
-[THIRD_PARTY_NOTICES.md](../../../THIRD_PARTY_NOTICES.md).
+[`THIRD_PARTY_NOTICES.md`](../../../THIRD_PARTY_NOTICES.md).
 
-Pour un répertoire data vide :
-
-```bash
-make samples-mysql
-make up-mysql
-
-make samples-postgres
-make up-postgres
-```
-
-Les entrypoints officiels ne traitent init que si le répertoire data est vide.
-Pour ajouter des samples à une instance existante, sauvegardez puis
-réinitialisez volontairement uniquement le SGBD concerné :
-
-```bash
-make samples-mysql
-make reinit-mysql CONFIRM=1
-
-make samples-postgres
-make reinit-postgres CONFIRM=1
-```
+Consultez [Initialisation et cycle de vie](#section-initialization) pour le
+moment de la préparation et la réinitialisation d’un SGBD existant.
 
 Un sample totalement absent est ignoré et n’empêche pas la création de `demo`.
 Un ensemble incomplet ou une base inattendue est refusé, sans réparation ni
@@ -92,17 +73,41 @@ initdb/
 | PostgreSQL | `POSTGRES_DATA_DIR` (`./data/postgres`) | `POSTGRES_INITDB_DIR` (`./initdb/postgres`) | `POSTGRES_SAMPLES_DIR` (`./samples/postgres`) |
 
 Les chemins data et samples se configurent dans `.docker.env` sous contrôle
-des managed paths. Les entrypoints exécutent init uniquement avec un data
-directory vide ; modifier init ne migre pas une base existante. `make down` ne
-supprime aucun bind mount. Ne modifiez pas manuellement les fichiers de
-`data/` : ils peuvent appartenir à des UID/GID numériques du conteneur.
+des managed paths. Les règles des répertoires init sont décrites dans
+[Initialisation et cycle de vie](#section-initialization). Ne modifiez pas
+manuellement les fichiers de `data/` : ils peuvent appartenir à des UID/GID
+numériques du conteneur.
 
 <a id="section-initialization"></a>
 ## Initialisation et cycle de vie
 
-> **Important:** Les entrypoints officiels MySQL et PostgreSQL n’exécutent init que si le
-data directory est vide. Modifier init ne migre pas une base existante et
-`make down` conserve les données bind-mounted.
+> **Important :** Les entrypoints officiels MySQL et PostgreSQL n’exécutent
+> init que si le data directory est vide. Ajouter des fichiers après
+> l’initialisation ne modifie pas une base existante. `make down` conserve les
+> données, tandis qu’une réinitialisation confirmée supprime toutes les données
+> du SGBD choisi ; une sauvegarde préalable est obligatoire.
+
+Pour une première initialisation avec samples, préparez-les avant le premier
+démarrage :
+
+```bash
+make samples-mysql
+make up-mysql
+
+make samples-postgres
+make up-postgres
+```
+
+Pour un SGBD déjà initialisé, créez une sauvegarde puis utilisez uniquement sa
+réinitialisation confirmée correspondante :
+
+```bash
+make samples-mysql
+make reinit-mysql CONFIRM=1
+
+make samples-postgres
+make reinit-postgres CONFIRM=1
+```
 
 <a id="section-training-access"></a>
 ## Accès pédagogique et ownership
@@ -114,7 +119,5 @@ superuser/createdb/createrole, et le rend propriétaire de `demo`, du schéma
 séparés : `MYSQL_ROOT_PASSWORD`, `POSTGRES_SUPERUSER` et
 `POSTGRES_SUPERUSER_PASSWORD`. Ne modifiez pas manuellement les fichiers de
 `data/` appartenant aux conteneurs.
-
-[LICENSE.md](../../../LICENSE.md) · [THIRD_PARTY_NOTICES.md](../../../THIRD_PARTY_NOTICES.md)
 
 [Retour au README](../README_fr.md)

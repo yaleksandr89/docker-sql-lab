@@ -69,6 +69,4 @@ Host clients use the published host address and `MYSQL_PORT` or
 `postgres` inside the Compose network. Confirm `BIND_ADDRESS`, firewall rules,
 the selected database, and the non-administrative `DB_USER` credentials.
 
-[LICENSE.md](../../../LICENSE.md) · [THIRD_PARTY_NOTICES.md](../../../THIRD_PARTY_NOTICES.md)
-
 [Back to README](../README_en.md)

@@ -18,10 +18,9 @@
 ## Requisitos
 
 - Docker Engine o Docker Desktop con el comando `docker compose` v2.
-- GNU Make, Bash y las utilidades Unix usadas por los scripts (`awk`, `sed`,
-  `grep`, `find`, `realpath` y `stat`).
-- Para descargar samples opcionales: `curl` y `git`; para MySQL también
-  `unzip` y `sha256sum`.
+- GNU Make, Bash y utilidades básicas de línea de comandos Unix.
+- Entornos recomendados: Linux; macOS con Docker Desktop; o Windows con
+  Docker Desktop y WSL2.
 
 Ejecute los comandos desde la raíz del repositorio. La rama predeterminada del
 proyecto es `master`.
@@ -29,8 +28,10 @@ proyecto es `master`.
 <a id="section-quick-start"></a>
 ## Inicio rápido
 
-Cree `.docker.env` desde el ejemplo versionado, valide las rutas, cree los
-directorios de trabajo e inicie el laboratorio completo:
+`make init` crea un `.docker.env` local desde
+[`.docker.env.example`](../../../.docker.env.example), valida las rutas de
+almacenamiento gestionadas y crea los directorios de trabajo. Después, inicie
+el laboratorio completo:
 
 ```bash
 make init
@@ -39,6 +40,14 @@ make up
 
 `make up` inicia MySQL, PostgreSQL y Adminer. Con la configuración por defecto,
 Adminer está en `http://127.0.0.1:8081`.
+
+Use `make up-no-ui` para iniciar ambos SGBD sin Adminer. La base obligatoria
+`demo` siempre se crea durante la primera inicialización; los datasets de
+ejemplo son opcionales. Para incluirlos en la primera inicialización,
+prepárelos antes del primer `make up`. Si los directorios de datos ya están
+inicializados, cree un backup antes de una reinicialización confirmada que
+borra datos. Consulte el procedimiento exacto en
+[Inicialización y ciclo de vida](databases.md#section-initialization).
 
 ```bash
 make status
@@ -62,7 +71,7 @@ bind-mounted.
 Los comandos de un SGBD no detienen el otro ya activo; Adminer se gestiona aparte.
 
 <details>
-<summary>Tabla completa de modos de inicio</summary>
+<summary>📋 Tabla completa de modos de inicio</summary>
 
 | Comando | MySQL | PostgreSQL | Adminer |
 |---|---|---|---|
@@ -153,7 +162,5 @@ BIND_ADDRESS=127.0.0.1
 los puertos en todas las interfaces. Para LAN o VPN, prefiera la dirección de
 una interfaz concreta. Cambie este valor conscientemente y revise firewall,
 fortaleza de contraseñas y confianza en la red.
-
-[LICENSE.md](../../../LICENSE.md) · [THIRD_PARTY_NOTICES.md](../../../THIRD_PARTY_NOTICES.md)
 
 [Volver al README](../README_es.md)

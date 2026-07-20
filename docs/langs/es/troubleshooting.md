@@ -58,6 +58,4 @@ Los clientes del host usan la dirección publicada y `MYSQL_PORT` o
 `POSTGRES_PORT`; Adminer usa `mysql` o `postgres` dentro de Compose. Revise
 `BIND_ADDRESS`, firewall, base seleccionada y credenciales `DB_USER`.
 
-[LICENSE.md](../../../LICENSE.md) · [THIRD_PARTY_NOTICES.md](../../../THIRD_PARTY_NOTICES.md)
-
 [Volver al README](../README_es.md)

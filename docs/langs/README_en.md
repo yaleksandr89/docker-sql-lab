@@ -101,7 +101,7 @@ Prepare samples before the first initialization; the official entrypoints load t
 > **Warning:** if a data directory was initialized without samples, adding them requires a backup and an explicitly confirmed destructive reinitialization.
 
 <details>
-<summary>The lab has run before: add or reuse samples</summary>
+<summary>📦 The lab has run before: add or reuse samples</summary>
 
 **Initialized without samples.** A regular `make up` does not apply new init/sample files. Back up important data, then use the appropriate option:
 

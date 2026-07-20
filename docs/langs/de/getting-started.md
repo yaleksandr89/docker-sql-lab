@@ -18,10 +18,9 @@
 ## Voraussetzungen
 
 - Docker Engine oder Docker Desktop mit dem Befehl `docker compose` v2.
-- GNU Make, Bash und die von den Skripten verwendeten Unix-Werkzeuge (`awk`,
-  `sed`, `grep`, `find`, `realpath` und `stat`).
-- Für optionale Samples: `curl` und `git`; für MySQL zusätzlich `unzip` und
-  `sha256sum`.
+- GNU Make, Bash und grundlegende Unix-Kommandozeilenwerkzeuge.
+- Empfohlene Umgebungen: Linux; macOS mit Docker Desktop; oder Windows mit
+  Docker Desktop und WSL2.
 
 Führen Sie Befehle im Repository-Stamm aus. Der Standardbranch des Projekts ist
 `master`.
@@ -29,8 +28,10 @@ Führen Sie Befehle im Repository-Stamm aus. Der Standardbranch des Projekts ist
 <a id="section-quick-start"></a>
 ## Schnellstart
 
-Erstellen Sie `.docker.env` aus dem versionierten Beispiel, prüfen Sie die
-Pfade, legen Sie Arbeitsverzeichnisse an und starten Sie das vollständige Lab:
+`make init` erstellt eine lokale `.docker.env` aus
+[`.docker.env.example`](../../../.docker.env.example), prüft die verwalteten
+Speicherpfade und legt die Arbeitsverzeichnisse an. Starten Sie danach das
+vollständige Lab:
 
 ```bash
 make init
@@ -39,6 +40,14 @@ make up
 
 `make up` startet MySQL, PostgreSQL und Adminer. Mit der Standardkonfiguration
 ist Adminer unter `http://127.0.0.1:8081` erreichbar.
+
+Mit `make up-no-ui` starten Sie beide DBMS ohne Adminer. Die obligatorische
+`demo`-Datenbank wird bei der ersten Initialisierung immer erstellt;
+Beispieldatensätze sind optional. Um sie bei der ersten Initialisierung zu
+laden, bereiten Sie sie vor dem ersten `make up` vor. Bei bereits
+initialisierten Datenverzeichnissen erstellen Sie ein Backup vor einer
+bestätigten Neuinitialisierung, die Daten löscht. Das genaue Verfahren steht
+unter [Initialisierung und Lebenszyklus](databases.md#section-initialization).
 
 ```bash
 make status
@@ -61,7 +70,7 @@ make down
 Einzel-DBMS-Befehle stoppen das andere laufende DBMS nicht; Adminer wird separat verwaltet.
 
 <details>
-<summary>Vollständige Tabelle der Startmodi</summary>
+<summary>📋 Vollständige Tabelle der Startmodi</summary>
 
 | Befehl | MySQL | PostgreSQL | Adminer |
 |---|---|---|---|
@@ -154,7 +163,5 @@ BIND_ADDRESS=127.0.0.1
 Ports auf allen Netzwerkschnittstellen. Für LAN oder VPN ist die Adresse einer
 bestimmten Schnittstelle vorzuziehen. Ändern Sie die Bindung bewusst und
 beachten Sie Firewall, Passwortstärke und Vertrauenswürdigkeit des Netzes.
-
-[LICENSE.md](../../../LICENSE.md) · [THIRD_PARTY_NOTICES.md](../../../THIRD_PARTY_NOTICES.md)
 
 [Zurück zur README](../README_de.md)

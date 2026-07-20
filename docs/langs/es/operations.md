@@ -28,7 +28,7 @@ antes de un import importante. Los backups integrados solo cubren MySQL
 `CONFIRM=1` exacto.
 
 <details>
-<summary>Referencia completa de targets públicos de Make</summary>
+<summary>📋 Referencia completa de targets públicos de Make</summary>
 
 `make help` muestra la lista resumida.
 
@@ -96,7 +96,9 @@ prueba de seguridad para SQL no confiable.
 <a id="section-storage-path-safety"></a>
 ## Seguridad de storage paths
 
-`make check-env` ejecuta `scripts/validate-storage-paths.sh`. Los data
+`make check-env` ejecuta
+[`scripts/validate-storage-paths.sh`](../../../scripts/validate-storage-paths.sh).
+Los data
 paths deben estar estrictamente bajo `data/` y los sample paths bajo
 `samples/`; se rechazan symlinks, rutas iguales, anidadas, solapadas o
 reservadas. `make test-storage-paths` prueba estas reglas sin Docker runtime.
@@ -155,7 +157,5 @@ Los targets individuales borran solo los datos del SGBD elegido; los de tipo
 `all` borran ambos. Conservan configuración, init, samples y backups. La
 reinicialización vuelve a iniciar y comprobar los SGBD seleccionados;
 `reinit-all` inicia ambos sin Adminer.
-
-[LICENSE.md](../../../LICENSE.md) · [THIRD_PARTY_NOTICES.md](../../../THIRD_PARTY_NOTICES.md)
 
 [Volver al README](../README_es.md)

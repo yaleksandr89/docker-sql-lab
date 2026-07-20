@@ -28,7 +28,7 @@ PostgreSQL. `clean-*` and `reinit-*` are destructive and require exact
 `CONFIRM=1`.
 
 <details>
-<summary>Complete public Make target reference</summary>
+<summary>📋 Complete public Make target reference</summary>
 
 Run `make help` for the concise command list.
 
@@ -106,7 +106,9 @@ not prove that untrusted SQL is safe or sandboxed.
 <a id="section-storage-path-safety"></a>
 ## Storage-path safety
 
-`make check-env` runs `scripts/validate-storage-paths.sh`. Data paths
+`make check-env` runs
+[`scripts/validate-storage-paths.sh`](../../../scripts/validate-storage-paths.sh).
+Data paths
 must be strict descendants of `data/`, and sample paths of `samples/`.
 Symlink components, equal, nested, overlapping, and reserved paths are
 rejected. `make test-storage-paths` exercises these rules without Docker
@@ -177,7 +179,5 @@ The single-DBMS commands delete only that DBMS data directory. The `all`
 variants delete both database data directories. Configuration, init files,
 optional sample downloads, and backups are preserved. Reinitialization then
 starts and checks the selected DBMSs; `reinit-all` starts both without Adminer.
-
-[LICENSE.md](../../../LICENSE.md) · [THIRD_PARTY_NOTICES.md](../../../THIRD_PARTY_NOTICES.md)
 
 [Back to README](../README_en.md)

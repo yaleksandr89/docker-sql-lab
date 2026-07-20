@@ -18,18 +18,17 @@
 ## 要求
 
 - Docker Engine 或 Docker Desktop，并支持 `docker compose` v2 命令。
-- GNU Make、Bash，以及脚本使用的 Unix 工具：`awk`、`sed`、`grep`、
-  `find`、`realpath` 和 `stat`。
-- 下载可选 samples 需要 `curl` 和 `git`；MySQL 还需要 `unzip` 与
-  `sha256sum`。
+- GNU Make、Bash 和基本 Unix 命令行工具。
+- 推荐环境：Linux；使用 Docker Desktop 的 macOS；或使用 Docker Desktop
+  与 WSL2 的 Windows。
 
 请在仓库根目录执行命令。项目默认分支为 `master`。
 
 <a id="section-quick-start"></a>
 ## 快速开始
 
-从受版本控制的示例创建 `.docker.env`，验证路径，创建工作目录并启动
-完整环境：
+`make init` 会根据 [`.docker.env.example`](../../../.docker.env.example)
+创建本地 `.docker.env`，验证受控存储路径并创建工作目录。然后启动完整环境：
 
 ```bash
 make init
@@ -38,6 +37,12 @@ make up
 
 `make up` 会启动 MySQL、PostgreSQL 和 Adminer。默认配置下，Adminer
 地址为 `http://127.0.0.1:8081`。
+
+使用 `make up-no-ui` 可启动两种数据库而不启动 Adminer。首次初始化时
+始终创建必需的 `demo` 数据库；示例数据集是可选的。如需在首次初始化时
+加载它们，请在第一次 `make up` 前完成准备。对于已经初始化的数据目录，
+请先备份，再执行会删除数据且经过确认的重新初始化。准确步骤见
+[初始化生命周期](databases.md#section-initialization)。
 
 ```bash
 make status
@@ -60,7 +65,7 @@ make down
 单数据库命令不会停止另一种已运行的数据库；Adminer 可单独管理。
 
 <details>
-<summary>完整启动模式表</summary>
+<summary>📋 完整启动模式表</summary>
 
 | 命令 | MySQL | PostgreSQL | Adminer |
 |---|---|---|---|
@@ -148,7 +153,5 @@ BIND_ADDRESS=127.0.0.1
 `127.0.0.1` 是本地默认值。`BIND_ADDRESS=0.0.0.0` 会在所有网络接口上
 发布端口。LAN 或 VPN 访问应优先使用具体接口的地址。修改时必须明确
 评估 firewall、密码强度和网络可信度。
-
-[LICENSE.md](../../../LICENSE.md) · [THIRD_PARTY_NOTICES.md](../../../THIRD_PARTY_NOTICES.md)
 
 [返回 README](../README_zh.md)

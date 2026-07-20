@@ -98,7 +98,7 @@ Prepare los samples antes de la primera inicialización; los entrypoints los car
 > **Advertencia:** si un directorio ya se inicializó sin samples, añadirlos exige un backup y una reinicialización destructiva confirmada explícitamente.
 
 <details>
-<summary>El laboratorio ya se inició: añadir o reutilizar samples</summary>
+<summary>📦 El laboratorio ya se inició: añadir o reutilizar samples</summary>
 
 **Inicializado sin samples.** `make up` no aplica nuevos archivos init/sample. Haga backup de los datos importantes y use la opción adecuada:
 

@@ -1,4 +1,4 @@
-# Проверки и операции
+# Проверки и эксплуатация
 
 [← Вернуться к README](../../../README.md)
 
@@ -10,54 +10,55 @@
 
 ## Раздел
 
-| Начало работы | Базы и samples | Проверки и операции | Диагностика |
+| Начало работы | Базы и учебные данные | Проверки и эксплуатация | Диагностика |
 | --- | --- | --- | --- |
-| [Начало работы](getting-started.md) | [Базы и samples](databases.md) | **Выбран** | [Диагностика](troubleshooting.md) |
+| [Начало работы](getting-started.md) | [Базы и учебные данные](databases.md) | **Выбран** | [Диагностика](troubleshooting.md) |
 
 <a id="section-make-targets"></a>
-## Команды Makefile
+## Команды `Makefile`
 
-Публичные targets и их фактическая реализация находятся в [`Makefile`](../../../Makefile).
+Публичные цели и их фактическая реализация находятся в
+[`Makefile`](../../../Makefile).
 
-Ключевые targets: `make init`, `make up`, `make down`, `make check`,
+Ключевые цели: `make init`, `make up`, `make down`, `make check`,
 `make test-storage-paths`, `make test-sql-imports`, `make mysql-import` и
-`make postgres-import`. Trusted SQL не является sandbox, может выполниться
-частично и не получает гарантии automatic rollback; перед важным импортом
-нужен backup. Встроенные backup targets покрывают только MySQL `demo`, не
-PostgreSQL. `clean-*` и `reinit-*` destructive и требуют точного
-`CONFIRM=1`.
+`make postgres-import`. Импорт доверенного SQL не является изолированной
+средой (`sandbox`), может выполниться частично и не гарантирует автоматический
+откат; перед важным импортом нужна резервная копия. Встроенные цели резервного
+копирования покрывают только MySQL `demo`, но не PostgreSQL. Цели `clean-*` и
+`reinit-*` удаляют данные и требуют точного `CONFIRM=1`.
 
 <details>
-<summary>Полный справочник публичных Make-целей</summary>
+<summary>📋 Полный справочник публичных целей Make</summary>
 
 Краткий список команд выводит `make help`.
 
 | Команда | Назначение |
 |---|---|
-| `make init` | Создать `.docker.env`, проверить managed paths и создать рабочие каталоги |
-| `make check-env` | Проверить обязательные env-значения, разделение ролей, имена баз и managed paths |
-| `make pull` | Загрузить три закреплённых container images |
+| `make init` | Создать `.docker.env`, проверить контролируемые пути хранения и создать рабочие каталоги |
+| `make check-env` | Проверить обязательные значения окружения, разделение ролей, имена баз и контролируемые пути хранения |
+| `make pull` | Загрузить три закреплённых образа контейнеров |
 | `make config` | Проверить развёрнутую Compose-конфигурацию |
 | `make up`, `make up-no-ui` | Запустить обе СУБД с Adminer или без него |
-| `make up-mysql`, `make up-mysql-ui` | Запустить MySQL, опционально с Adminer |
-| `make up-postgres`, `make up-postgres-ui` | Запустить PostgreSQL, опционально с Adminer |
+| `make up-mysql`, `make up-mysql-ui` | Запустить MySQL, при необходимости с Adminer |
+| `make up-postgres`, `make up-postgres-ui` | Запустить PostgreSQL, при необходимости с Adminer |
 | `make up-ui`, `make down-ui` | Запустить или остановить только Adminer |
-| `make down` | Остановить стенд без удаления bind-mounted данных |
+| `make down` | Остановить стенд без удаления данных в каталогах хоста, подключённых в контейнеры |
 | `make status` | Показать состояние сервисов |
 | `make logs` | Следить за логами всех сервисов |
 | `make log SERVICE=postgres` | Следить за логом одного сервиса; также работает `make log postgres` |
-| `make in SERVICE=postgres` | Открыть shell сервиса; также работает `make in postgres` |
+| `make in SERVICE=postgres` | Открыть командную оболочку сервиса; также работает `make in postgres` |
 | `make mysql`, `make mysql-user` | Открыть MySQL как администратор или `DB_USER` |
-| `make postgres`, `make postgres-user` | Открыть PostgreSQL как superuser или `DB_USER` |
-| `make samples-mysql`, `make samples-postgres` | Подготовить проверенные optional samples |
+| `make postgres`, `make postgres-user` | Открыть PostgreSQL как суперпользователь или `DB_USER` |
+| `make samples-mysql`, `make samples-postgres` | Подготовить проверенные необязательные учебные базы |
 | `make check-mysql-access`, `make check-postgres-access` | Проверить доступ учебного пользователя к одной запущенной СУБД |
 | `make check` | Проверить Compose и доступ `DB_USER` к двум запущенным СУБД |
-| `make test-storage-paths` | Проверить защиту managed storage paths без Docker runtime |
-| `make test-sql-imports` | Выполнить smoke-test двух публичных trusted SQL import targets |
-| `make mysql-import FILE=... DATABASE=...` | Импортировать доверенный plain SQL в существующую MySQL-базу от `DB_USER` |
-| `make postgres-import FILE=... DATABASE=...` | Импортировать доверенный plain SQL в существующую PostgreSQL-базу от `DB_USER` |
+| `make test-storage-paths` | Проверить защиту контролируемых путей хранения без запуска Docker |
+| `make test-sql-imports` | Быстро проверить две публичные цели импорта доверенных SQL-файлов |
+| `make mysql-import FILE=... DATABASE=...` | Импортировать доверенный файл в формате `plain SQL` в существующую базу MySQL от `DB_USER` |
+| `make postgres-import FILE=... DATABASE=...` | Импортировать доверенный файл в формате `plain SQL` в существующую базу PostgreSQL от `DB_USER` |
 | `make dump`, `make restore` | Создать или восстановить dump настроенной MySQL-базы `demo` |
-| `make clean-{mysql,postgres,all} CONFIRM=1` | Удалить выбранные managed data-каталоги |
+| `make clean-{mysql,postgres,all} CONFIRM=1` | Удалить выбранные контролируемые каталоги данных |
 | `make reinit-{mysql,postgres,all} CONFIRM=1` | Удалить, пересоздать и проверить выбранные базы |
 
 </details>
@@ -74,18 +75,18 @@ make test-storage-paths
 ```
 
 `make check-env` создаёт `.docker.env` из примера, если файла ещё нет, затем
-проверяет обязательные настройки и managed paths. `make config` проверяет
+проверяет обязательные настройки и контролируемые пути хранения. `make config` проверяет
 развёрнутую Compose-модель.
 
-Для `make test-storage-paths` Docker runtime не требуется. Тест проверяет
-защиту от путей за пределами проекта, symlink-компонентов, пересекающихся или
-вложенных managed paths и зарезервированных каталогов. Тот же validator
-защищает настроенные data- и sample-каталоги MySQL/PostgreSQL при обычной
-инициализации.
+Для `make test-storage-paths` запуск Docker не требуется. Тест проверяет защиту
+от путей за пределами проекта, компонентов символических ссылок,
+пересекающихся или вложенных контролируемых путей и зарезервированных
+каталогов. Та же проверка защищает настроенные каталоги данных и учебных баз
+MySQL/PostgreSQL при обычной инициализации.
 
-### Runtime-проверки
+### Проверки после запуска
 
-Запустите обе СУБД без Adminer, проверьте учебный доступ и imports, затем
+Запустите обе СУБД без Adminer, проверьте учебный доступ и импорт, затем
 остановите сервисы:
 
 ```bash
@@ -96,59 +97,62 @@ make down
 ```
 
 `make check` проверяет обязательные данные `demo` и фактический доступ
-`DB_USER` в обеих СУБД. Если установлены поддерживаемые optional samples, они
+`DB_USER` в обеих СУБД. Если установлены поддерживаемые учебные базы, они
 также проверяются.
 
 Для `make test-sql-imports` обе СУБД должны быть запущены. Тест вызывает
-публичные targets `mysql-import` и `postgres-import`, создаёт уникальные
-временные smoke-таблицы в `demo`, проверяет marker rows от имени `DB_USER` и
-удаляет только эти таблицы. Это проверка trusted SQL import workflow, а не
-доказательство безопасности или sandbox для недоверенного SQL.
+публичные цели `mysql-import` и `postgres-import`, создаёт уникальные временные
+проверочные таблицы в `demo`, проверяет контрольные записи от имени `DB_USER` и
+удаляет только эти таблицы. Это проверка процесса импорта доверенного SQL, а не
+доказательство безопасности или изолированная среда для недоверенного SQL.
 
 <a id="section-storage-path-safety"></a>
-## Безопасность storage paths
+## Безопасность путей хранения
 
-`make check-env` запускает `scripts/validate-storage-paths.sh`.
-Data paths должны быть строго внутри `data/`, sample paths — внутри
-`samples/`; symlink-компоненты, совпадающие, вложенные, пересекающиеся и
+`make check-env` запускает
+[`scripts/validate-storage-paths.sh`](../../../scripts/validate-storage-paths.sh).
+Пути данных должны быть строго внутри `data/`, пути учебных баз — внутри
+`samples/`; компоненты символических ссылок, совпадающие, вложенные, пересекающиеся и
 зарезервированные пути отклоняются. `make test-storage-paths` проверяет эти
-ограничения без Docker runtime.
+ограничения без запуска Docker.
 
 <a id="section-sql-imports"></a>
 ## Импорт доверенных SQL-файлов
 
-Импортируйте только доверенные локальные plain SQL-файлы:
+Импортируйте только доверенные локальные файлы в формате `plain SQL`:
 
 ```bash
 make mysql-import FILE=path/to/file.sql DATABASE=demo
 make postgres-import FILE=path/to/file.sql DATABASE=demo
 ```
 
-Для обоих targets:
+Для обеих целей:
 
 - `FILE` и `DATABASE` обязательны.
 - Файл должен быть существующим, читаемым и непустым обычным файлом.
 - Имя базы должно начинаться со строчной ASCII-буквы и содержать только
   строчные ASCII-буквы, цифры или `_`; системные базы запрещены.
 - База должна существовать и принимать подключение от `DB_USER`.
-- Import выполняется от `DB_USER`, а не от MySQL root или PostgreSQL superuser.
-- Target не создаёт базу и не выдаёт grants.
-- Targets не обрабатывают архивы, gzip-потоки и PostgreSQL backups в custom
-  format.
+- Импорт выполняется от `DB_USER`, а не от `root` MySQL или суперпользователя
+  PostgreSQL.
+- Цель не создаёт базу и не выдаёт права.
+- Цели не обрабатывают архивы, потоки `gzip` и резервные копии PostgreSQL в
+  формате `custom format`.
 
-`DATABASE` выбирает начальную базу подключения, но не создаёт sandbox.
-Qualified names (полные имена объектов), session/client commands и реальные
-grants роли `DB_USER` могут разрешить доступ к другим объектам. SQL способен
+`DATABASE` выбирает начальную базу подключения, но не создаёт изолированную
+среду. Полные имена объектов, команды сеанса или клиента и фактические права
+роли `DB_USER` могут разрешить доступ к другим объектам. SQL способен
 изменить или удалить всё, к чему у этой роли есть доступ.
 
-Import может выполниться частично. Ни один target не обещает автоматический
-полный rollback после ошибки. Перед важным импортом изучите файл и создайте
-подходящий backup.
+Импорт может выполниться частично. Ни одна цель не обещает автоматический
+полный откат после ошибки. Перед важным импортом изучите файл и создайте
+подходящую резервную копию.
 
 <a id="section-backup"></a>
-## Backup
+## Резервное копирование
 
-Встроенные backup-targets работают только с настроенной MySQL-базой `demo`:
+Встроенные цели резервного копирования работают только с настроенной базой
+MySQL `demo`:
 
 ```bash
 make dump
@@ -156,14 +160,14 @@ make restore
 ```
 
 С конфигурацией по умолчанию `make dump` записывает `backup/demo.sql`.
-`make restore` читает этот файл и повторно применяет учебные MySQL grants. Для
+`make restore` читает этот файл и повторно применяет учебные права MySQL. Для
 сохранения PostgreSQL используйте отдельную процедуру резервного копирования.
 
 <a id="section-clean-reinitialize"></a>
 ## Очистка и переинициализация
 
-> **Внимание:** все перечисленные ниже `clean-*` и `reinit-*` команды
-> destructive и требуют точного подтверждения `CONFIRM=1`.
+> **Внимание:** все перечисленные ниже команды `clean-*` и `reinit-*` удаляют
+> данные и требуют точного подтверждения `CONFIRM=1`.
 
 ```bash
 make clean-mysql CONFIRM=1
@@ -175,11 +179,10 @@ make reinit-postgres CONFIRM=1
 make reinit-all CONFIRM=1
 ```
 
-Одиночные команды удаляют только data-каталог выбранной СУБД. Варианты `all`
-удаляют data-каталоги обеих СУБД. Конфигурация, init-файлы, загруженные
-optional samples и backups сохраняются. Затем reinit запускает и проверяет
-выбранные СУБД; `reinit-all` запускает обе без Adminer.
-
-[LICENSE.md](../../../LICENSE.md) · [THIRD_PARTY_NOTICES.md](../../../THIRD_PARTY_NOTICES.md)
+Одиночные команды удаляют только каталог данных выбранной СУБД. Варианты
+`all` удаляют каталоги данных обеих СУБД. Конфигурация, файлы инициализации,
+загруженные учебные базы и резервные копии сохраняются. Затем
+переинициализация запускает и проверяет выбранные СУБД; `reinit-all` запускает
+обе без Adminer.
 
 [Вернуться к README](../../../README.md)

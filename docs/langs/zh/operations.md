@@ -28,7 +28,7 @@ PostgreSQL。`clean-*` 与 `reinit-*` 是 destructive 操作，并要求精确
 `CONFIRM=1`。
 
 <details>
-<summary>完整公共 Make targets 参考</summary>
+<summary>📋 完整公共 Make targets 参考</summary>
 
 `make help` 显示简要命令列表。
 
@@ -95,7 +95,8 @@ make down
 <a id="section-storage-path-safety"></a>
 ## Storage path 安全
 
-`make check-env` 会运行 `scripts/validate-storage-paths.sh`。Data
+`make check-env` 会运行
+[`scripts/validate-storage-paths.sh`](../../../scripts/validate-storage-paths.sh)。Data
 paths 必须严格位于 `data/` 内，sample paths 必须严格位于
 `samples/` 内；symlink、相同、嵌套、重叠和 reserved paths 都会被拒绝。
 `make test-storage-paths` 无需 Docker runtime 即可测试这些规则。
@@ -153,7 +154,5 @@ make reinit-all CONFIRM=1
 单数据库命令只删除对应 data 目录；`all` 会删除两种数据库的数据。配置、
 init、samples 和 backups 会保留。reinit 随后启动并检查所选数据库；
 `reinit-all` 启动两者但不启用 Adminer。
-
-[LICENSE.md](../../../LICENSE.md) · [THIRD_PARTY_NOTICES.md](../../../THIRD_PARTY_NOTICES.md)
 
 [返回 README](../README_zh.md)

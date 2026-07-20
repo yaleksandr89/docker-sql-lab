@@ -95,7 +95,7 @@ make up
 > **警告：** 如果 data 目录已在没有 samples 时初始化，添加 samples 需要先做 backup，并明确确认 destructive reinit。
 
 <details>
-<summary>环境已启动过：添加或继续使用 samples</summary>
+<summary>📦 环境已启动过：添加或继续使用 samples</summary>
 
 **已在没有 samples 时初始化。** 普通的 `make up` 不会应用新增的 init/sample 文件。请先备份重要数据，再选择对应方式：
 

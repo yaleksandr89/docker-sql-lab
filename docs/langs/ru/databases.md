@@ -1,4 +1,4 @@
-# Базы и samples
+# Базы и учебные данные
 
 [← Вернуться к README](../../../README.md)
 
@@ -10,9 +10,9 @@
 
 ## Раздел
 
-| Начало работы | Базы и samples | Проверки и операции | Диагностика |
+| Начало работы | Базы и учебные данные | Проверки и эксплуатация | Диагностика |
 | --- | --- | --- | --- |
-| [Начало работы](getting-started.md) | **Выбран** | [Проверки и операции](operations.md) | [Диагностика](troubleshooting.md) |
+| [Начало работы](getting-started.md) | **Выбран** | [Проверки и эксплуатация](operations.md) | [Диагностика](troubleshooting.md) |
 
 <a id="section-demo"></a>
 ## Обязательные базы `demo`
@@ -34,51 +34,34 @@
 
 | СУБД | Необязательные базы | Команда подготовки |
 |---|---|---|
-| MySQL | Chinook, Sakila | `make samples-mysql` |
-| PostgreSQL | Pagila, Chinook | `make samples-postgres` |
+| MySQL | `chinook`, `sakila` | `make samples-mysql` |
+| PostgreSQL | `pagila`, `chinook` | `make samples-postgres` |
 
 <a id="section-sample-preparation"></a>
-## Подготовка samples
+## Подготовка учебных баз
 
-Для подготовки нужны `curl` и `git`; MySQL samples дополнительно требуют `unzip` и `sha256sum`.
+Для подготовки нужны `curl` и `git`; учебные базы MySQL дополнительно требуют
+`unzip` и `sha256sum`.
 
-Команды подготовки загружают и проверяют закреплённые upstream-файлы, но не
+Команды подготовки загружают и проверяют закреплённые файлы исходных проектов, но не
 запускают контейнеры и не импортируют данные в уже инициализированную СУБД.
 Загрузки остаются локальными, исключаются из Git и сохраняются в
-`MYSQL_SAMPLES_DIR` или `POSTGRES_SAMPLES_DIR`. Происхождение, integrity pins и
-лицензии описаны в [THIRD_PARTY_NOTICES.md](../../../THIRD_PARTY_NOTICES.md).
+`MYSQL_SAMPLES_DIR` или `POSTGRES_SAMPLES_DIR`. Происхождение, контрольные
+значения целостности и лицензии описаны в
+[`THIRD_PARTY_NOTICES.md`](../../../THIRD_PARTY_NOTICES.md).
 
-Для СУБД с пустым data-каталогом:
+Порядок подготовки относительно первого запуска и повторной инициализации
+описан в разделе [«Инициализация и жизненный цикл»](#section-initialization).
 
-```bash
-make samples-mysql
-make up-mysql
-
-make samples-postgres
-make up-postgres
-```
-
-Официальные entrypoints образов обрабатывают init-файлы только при пустом
-data-каталоге соответствующей СУБД. Чтобы добавить samples в уже
-инициализированную СУБД, сначала сохраните важные данные, затем осознанно
-переинициализируйте только её:
-
-```bash
-make samples-mysql
-make reinit-mysql CONFIRM=1
-
-make samples-postgres
-make reinit-postgres CONFIRM=1
-```
-
-Полностью отсутствующий optional sample пропускается и не мешает создать
-обязательную `demo`. Частичный набор sample-файлов или неожиданная существующая
-sample-база отклоняются без автоматического исправления или удаления.
+Полностью отсутствующая необязательная учебная база пропускается и не мешает
+создать обязательную `demo`. Частичный набор файлов учебных баз или неожиданно
+существующая учебная база отклоняются без автоматического исправления или
+удаления.
 
 <a id="section-storage-layout"></a>
 ## Структура хранения
 
-Bind-mounted storage по умолчанию разделён по СУБД:
+Каталоги хоста для хранения данных по умолчанию разделены по СУБД:
 
 ```text
 data/
@@ -92,40 +75,57 @@ initdb/
 
 Связанные настройки `.docker.env` также разделены:
 
-| СУБД | Данные | Init | Optional samples |
+| СУБД | Данные | Инициализация | Необязательные учебные базы |
 |---|---|---|---|
 | MySQL | `MYSQL_DATA_DIR` (`./data/mysql`) | `MYSQL_INITDB_DIR` (`./initdb/mysql`) | `MYSQL_SAMPLES_DIR` (`./samples/mysql`) |
 | PostgreSQL | `POSTGRES_DATA_DIR` (`./data/postgres`) | `POSTGRES_INITDB_DIR` (`./initdb/postgres`) | `POSTGRES_SAMPLES_DIR` (`./samples/postgres`) |
 
-Data- и sample-пути можно изменить через `.docker.env` с учётом проверки
-managed storage paths.
+Пути данных и учебных баз можно изменить через `.docker.env` с учётом проверки
+контролируемых путей хранения. Правила применения каталогов инициализации
+описаны в разделе [«Инициализация и жизненный цикл»](#section-initialization).
 
-Официальные entrypoints MySQL и PostgreSQL выполняют соответствующий
-init-каталог только для пустого data-каталога. Добавление или изменение
-init-файла не мигрирует существующую базу. `make down` не удаляет данные ни из
-одного bind mount.
-
-Не редактируйте файлы СУБД внутри `data/` вручную. Container-owned файлы могут
-иметь числовые UID/GID, отличающиеся от пользователя хоста.
+Не редактируйте файлы СУБД внутри `data/` вручную. Файлы, принадлежащие
+контейнерам, могут иметь числовые UID/GID, отличающиеся от пользователя хоста.
 
 <a id="section-initialization"></a>
 ## Инициализация и жизненный цикл
 
-> **Важно:** Официальные entrypoints MySQL и PostgreSQL выполняют init-файлы только
-при пустом data-каталоге. Изменение init-файлов не мигрирует уже созданную
-базу, а `make down` не удаляет bind-mounted данные.
+> **Важно:** Официальные точки входа MySQL и PostgreSQL выполняют файлы
+> инициализации только при пустом каталоге данных. Добавление файлов после
+> инициализации не изменяет существующую базу. `make down` сохраняет данные,
+> а подтверждённая переинициализация удаляет все данные выбранной СУБД;
+> предварительное создание резервной копии обязательно.
+
+Для первой инициализации с учебными базами подготовьте их до первого запуска:
+
+```bash
+make samples-mysql
+make up-mysql
+
+make samples-postgres
+make up-postgres
+```
+
+Для уже инициализированной СУБД после создания резервной копии используйте
+только соответствующую подтверждённую переинициализацию:
+
+```bash
+make samples-mysql
+make reinit-mysql CONFIRM=1
+
+make samples-postgres
+make reinit-postgres CONFIRM=1
+```
 
 <a id="section-training-access"></a>
-## Доступ учебного пользователя и ownership
+## Доступ учебного пользователя и владение объектами
 
 MySQL создаёт `DB_USER` и выдаёт ему права на все пользовательские
-базы, обнаруженные во время init. PostgreSQL создаёт отдельную роль
-`DB_USER` без superuser/createdb/createrole и назначает её владельцем
-`demo`, схемы `public` и загруженных sample-объектов. Административные
-credentials остаются отдельными: `MYSQL_ROOT_PASSWORD`,
+базы, обнаруженные во время инициализации. PostgreSQL создаёт отдельную роль
+`DB_USER` без прав `superuser`, `createdb` и `createrole` и назначает её владельцем
+`demo`, схемы `public` и загруженных объектов учебных баз. Административные
+учётные данные остаются отдельными: `MYSQL_ROOT_PASSWORD`,
 `POSTGRES_SUPERUSER` и `POSTGRES_SUPERUSER_PASSWORD`. Не редактируйте
-container-owned файлы в `data/` вручную.
-
-[LICENSE.md](../../../LICENSE.md) · [THIRD_PARTY_NOTICES.md](../../../THIRD_PARTY_NOTICES.md)
+файлы в `data/`, принадлежащие контейнерам, вручную.
 
 [Вернуться к README](../../../README.md)
