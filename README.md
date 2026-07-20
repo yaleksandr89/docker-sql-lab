@@ -81,17 +81,11 @@ make down
 | Команда | MySQL | PostgreSQL | Adminer |
 |---|---|---|---|
 | `make up` | Запускает | Запускает | Запускает |
-| `make up-no-ui` | Запускает или оставляет активным | Запускает или оставляет активным | Останавливает, если запущен |
-| `make up-mysql` | Запускает | Не запускает автоматически | Не запускает автоматически |
-| `make up-mysql-ui` | Запускает | Не запускает автоматически | Запускает |
-| `make up-postgres` | Не запускает автоматически | Запускает | Не запускает автоматически |
-| `make up-postgres-ui` | Не запускает автоматически | Запускает | Запускает |
-| `make up-ui` | Не меняет состояние | Не меняет состояние | Запускает |
-| `make down-ui` | Не меняет состояние | Не меняет состояние | Останавливает |
+| `make up-no-ui` | Запускает | Запускает | Останавливает |
+| `make up-mysql` | Запускает | Не запускает | Не запускает |
+| `make up-postgres` | Не запускает | Запускает | Не запускает |
 
-Команды одиночного запуска не останавливают другую уже работающую СУБД.
-Adminer можно запускать и останавливать отдельно; он не привязан только к
-MySQL.
+Команды одной СУБД не останавливают уже работающую другую; Adminer управляется отдельно.
 
 ## Подключения
 
@@ -133,136 +127,21 @@ make postgres       # superuser PostgreSQL, база demo
 make postgres-user  # DB_USER, база demo
 ```
 
-## Учётные данные
+## Кратко об учётных данных
 
-При копировании `.docker.env.example` создаётся `.docker.env`; этот файл
-исключён из Git. Храните пароли в нём и не хардкодьте их в Compose, SQL или
-отслеживаемой конфигурации клиентов.
-
-| Назначение | Настройка пользователя | Настройка пароля |
+| Назначение | Пользователь | Пароль |
 |---|---|---|
 | Общий учебный пользователь двух СУБД | `DB_USER` | `DB_PASSWORD` |
 | Администратор MySQL | `root` | `MYSQL_ROOT_PASSWORD` |
-| Администратор/superuser PostgreSQL | `POSTGRES_SUPERUSER` | `POSTGRES_SUPERUSER_PASSWORD` |
+| Superuser PostgreSQL | `POSTGRES_SUPERUSER` | `POSTGRES_SUPERUSER_PASSWORD` |
 
-`POSTGRES_SUPERUSER` и `DB_USER` должны быть разными ролями. Для обычных
-упражнений используйте общего учебного пользователя, а не root или superuser.
-Замените пароли из примера до предоставления общего доступа или публикации
-любого сервиса за пределами локального компьютера.
+`POSTGRES_SUPERUSER` и `DB_USER` должны быть разными ролями. Для обычных упражнений используйте общего учебного пользователя и замените примерные пароли до публикации сервисов.
 
-## Порты и `BIND_ADDRESS`
+## Базы и ключевые проверки
 
-Порты хоста настраиваются в `.docker.env`:
+Обе СУБД создают обязательную базу `demo` с эквивалентной таблицей `demo_users`. Optional samples: Chinook и Sakila для MySQL, Pagila и Chinook для PostgreSQL. Подготовка samples не импортирует их в уже инициализированные данные.
 
-| Сервис | Переменная порта | Значение примера |
-|---|---|---|
-| MySQL | `MYSQL_PORT` | `3306` |
-| PostgreSQL | `POSTGRES_PORT` | `5432` |
-| Adminer | `ADMINER_PORT` | `8081` |
-
-По умолчанию все три сервиса публикуются только на loopback:
-
-```env
-BIND_ADDRESS=127.0.0.1
-```
-
-Это безопасный default для локального стенда. Значение
-`BIND_ADDRESS=0.0.0.0` публикует настроенные порты на всех сетевых интерфейсах.
-Для доступа через VPN или LAN предпочтительнее адрес конкретного интерфейса.
-Меняйте binding осознанно, учитывая правила firewall, надёжность паролей и
-доверие ко всем подключённым сетям.
-
-## Учебные базы
-
-### Обязательные базы `demo`
-
-Обе СУБД инициализируют обязательную базу с именем `demo`:
-
-- MySQL: `demo.demo_users`
-- PostgreSQL: `demo.public.demo_users`
-
-Таблицы содержат эквивалентные поля `id`, `name`, `email`, `created_at` и
-одинаковые пять обязательных пользователей: Alice, Bob, Carol, Dave и Eve.
-Проверки допускают дополнительные строки, созданные пользователем.
-
-Имена баз по умолчанию задаются как `MYSQL_DATABASE=demo` и
-`POSTGRES_DATABASE=demo`; `make check-env` требует именно эти значения.
-
-### Необязательные учебные базы
-
-| СУБД | Необязательные базы | Команда подготовки |
-|---|---|---|
-| MySQL | Chinook, Sakila | `make samples-mysql` |
-| PostgreSQL | Pagila, Chinook | `make samples-postgres` |
-
-Команды подготовки загружают и проверяют закреплённые upstream-файлы, но не
-запускают контейнеры и не импортируют данные в уже инициализированную СУБД.
-Загрузки остаются локальными, исключаются из Git и сохраняются в
-`MYSQL_SAMPLES_DIR` или `POSTGRES_SAMPLES_DIR`. Происхождение, integrity pins и
-лицензии описаны в [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
-
-Для СУБД с пустым data-каталогом:
-
-```bash
-make samples-mysql
-make up-mysql
-
-make samples-postgres
-make up-postgres
-```
-
-Официальные entrypoints образов обрабатывают init-файлы только при пустом
-data-каталоге соответствующей СУБД. Чтобы добавить samples в уже
-инициализированную СУБД, сначала сохраните важные данные, затем осознанно
-переинициализируйте только её:
-
-```bash
-make samples-mysql
-make reinit-mysql CONFIRM=1
-
-make samples-postgres
-make reinit-postgres CONFIRM=1
-```
-
-Полностью отсутствующий optional sample пропускается и не мешает создать
-обязательную `demo`. Частичный набор sample-файлов или неожиданная существующая
-sample-база отклоняются без автоматического исправления или удаления.
-
-## Команды Makefile
-
-Краткий список команд выводит `make help`.
-
-| Команда | Назначение |
-|---|---|
-| `make init` | Создать `.docker.env`, проверить managed paths и создать рабочие каталоги |
-| `make check-env` | Проверить обязательные env-значения, разделение ролей, имена баз и managed paths |
-| `make pull` | Загрузить три закреплённых container images |
-| `make config` | Проверить развёрнутую Compose-конфигурацию |
-| `make up`, `make up-no-ui` | Запустить обе СУБД с Adminer или без него |
-| `make up-mysql`, `make up-mysql-ui` | Запустить MySQL, опционально с Adminer |
-| `make up-postgres`, `make up-postgres-ui` | Запустить PostgreSQL, опционально с Adminer |
-| `make up-ui`, `make down-ui` | Запустить или остановить только Adminer |
-| `make down` | Остановить стенд без удаления bind-mounted данных |
-| `make status` | Показать состояние сервисов |
-| `make logs` | Следить за логами всех сервисов |
-| `make log SERVICE=postgres` | Следить за логом одного сервиса; также работает `make log postgres` |
-| `make in SERVICE=postgres` | Открыть shell сервиса; также работает `make in postgres` |
-| `make mysql`, `make mysql-user` | Открыть MySQL как администратор или `DB_USER` |
-| `make postgres`, `make postgres-user` | Открыть PostgreSQL как superuser или `DB_USER` |
-| `make samples-mysql`, `make samples-postgres` | Подготовить проверенные optional samples |
-| `make check-mysql-access`, `make check-postgres-access` | Проверить доступ учебного пользователя к одной запущенной СУБД |
-| `make check` | Проверить Compose и доступ `DB_USER` к двум запущенным СУБД |
-| `make test-storage-paths` | Проверить защиту managed storage paths без Docker runtime |
-| `make test-sql-imports` | Выполнить smoke-test двух публичных trusted SQL import targets |
-| `make mysql-import FILE=... DATABASE=...` | Импортировать доверенный plain SQL в существующую MySQL-базу от `DB_USER` |
-| `make postgres-import FILE=... DATABASE=...` | Импортировать доверенный plain SQL в существующую PostgreSQL-базу от `DB_USER` |
-| `make dump`, `make restore` | Создать или восстановить dump настроенной MySQL-базы `demo` |
-| `make clean-{mysql,postgres,all} CONFIRM=1` | Удалить выбранные managed data-каталоги |
-| `make reinit-{mysql,postgres,all} CONFIRM=1` | Удалить, пересоздать и проверить выбранные базы |
-
-## Проверки
-
-### Статические и локальные проверки
+Статическая проверка не требует запуска СУБД:
 
 ```bash
 make check-env
@@ -270,176 +149,31 @@ make config
 make test-storage-paths
 ```
 
-`make check-env` создаёт `.docker.env` из примера, если файла ещё нет, затем
-проверяет обязательные настройки и managed paths. `make config` проверяет
-развёрнутую Compose-модель.
+После запуска обеих СУБД `make check` проверяет доступ `DB_USER`, а `make test-sql-imports` — публичные trusted import targets. Подробные команды, ограничения и порядок безопасных действий вынесены в документацию ниже.
 
-Для `make test-storage-paths` Docker runtime не требуется. Тест проверяет
-защиту от путей за пределами проекта, symlink-компонентов, пересекающихся или
-вложенных managed paths и зарезервированных каталогов. Тот же validator
-защищает настроенные data- и sample-каталоги MySQL/PostgreSQL при обычной
-инициализации.
+Data-, init- и sample-каталоги MySQL/PostgreSQL разделены и настраиваются через `.docker.env`. Managed path validator не допускает выход за `data/` или `samples/`, symlink-компоненты, пересечения и зарезервированные каталоги. Полностью отсутствующий optional sample пропускается, а частичный набор или неожиданная существующая sample-база отклоняются без автоматического исправления.
 
-### Runtime-проверки
+Подготовка samples загружает закреплённые upstream-файлы, проверяет integrity и оставляет их локально; provenance и лицензии находятся в `THIRD_PARTY_NOTICES.md`. Runtime-проверки также подтверждают обязательные строки `demo`, read/write-доступ учебного пользователя и установленные samples.
 
-Запустите обе СУБД без Adminer, проверьте учебный доступ и imports, затем
-остановите сервисы:
+## Безопасность и жизненный цикл
 
-```bash
-make up-no-ui
-make check
-make test-sql-imports
-make down
-```
+- `BIND_ADDRESS=127.0.0.1` публикует сервисы только на loopback.
+- `BIND_ADDRESS=0.0.0.0` публикует их на всех интерфейсах: заранее настройте
+  firewall, надёжные credentials и доверенную сеть.
+- Официальные entrypoints выполняют init только для пустого data-каталога.
+- `make mysql-import` и `make postgres-import` принимают только доверенный
+  SQL. Это не sandbox: возможна частичная запись без полного automatic rollback.
+  Перед важным импортом сделайте backup.
+- Встроенные `make dump` и `make restore` покрывают только MySQL `demo`;
+  встроенного backup target для PostgreSQL нет.
+- Все `clean-*` и `reinit-*` destructive и требуют точного `CONFIRM=1`.
 
-`make check` проверяет обязательные данные `demo` и фактический доступ
-`DB_USER` в обеих СУБД. Если установлены поддерживаемые optional samples, они
-также проверяются.
+## Документация
 
-Для `make test-sql-imports` обе СУБД должны быть запущены. Тест вызывает
-публичные targets `mysql-import` и `postgres-import`, создаёт уникальные
-временные smoke-таблицы в `demo`, проверяет marker rows от имени `DB_USER` и
-удаляет только эти таблицы. Это проверка trusted SQL import workflow, а не
-доказательство безопасности или sandbox для недоверенного SQL.
-
-## Импорт доверенных SQL-файлов
-
-Импортируйте только доверенные локальные plain SQL-файлы:
-
-```bash
-make mysql-import FILE=path/to/file.sql DATABASE=demo
-make postgres-import FILE=path/to/file.sql DATABASE=demo
-```
-
-Для обоих targets:
-
-- `FILE` и `DATABASE` обязательны.
-- Файл должен быть существующим, читаемым и непустым обычным файлом.
-- Имя базы должно начинаться со строчной ASCII-буквы и содержать только
-  строчные ASCII-буквы, цифры или `_`; системные базы запрещены.
-- База должна существовать и принимать подключение от `DB_USER`.
-- Import выполняется от `DB_USER`, а не от MySQL root или PostgreSQL superuser.
-- Target не создаёт базу и не выдаёт grants.
-- Targets не обрабатывают архивы, gzip-потоки и PostgreSQL backups в custom
-  format.
-
-`DATABASE` выбирает начальную базу подключения, но не создаёт sandbox.
-Qualified names (полные имена объектов), session/client commands и реальные
-grants роли `DB_USER` могут разрешить доступ к другим объектам. SQL способен
-изменить или удалить всё, к чему у этой роли есть доступ.
-
-Import может выполниться частично. Ни один target не обещает автоматический
-полный rollback после ошибки. Перед важным импортом изучите файл и создайте
-подходящий backup.
-
-## Жизненный цикл данных и init
-
-Bind-mounted storage по умолчанию разделён по СУБД:
-
-```text
-data/
-├── mysql/
-└── postgres/
-
-initdb/
-├── mysql/
-└── postgres/
-```
-
-Связанные настройки `.docker.env` также разделены:
-
-| СУБД | Данные | Init | Optional samples |
-|---|---|---|---|
-| MySQL | `MYSQL_DATA_DIR` (`./data/mysql`) | `MYSQL_INITDB_DIR` (`./initdb/mysql`) | `MYSQL_SAMPLES_DIR` (`./samples/mysql`) |
-| PostgreSQL | `POSTGRES_DATA_DIR` (`./data/postgres`) | `POSTGRES_INITDB_DIR` (`./initdb/postgres`) | `POSTGRES_SAMPLES_DIR` (`./samples/postgres`) |
-
-Data- и sample-пути можно изменить через `.docker.env` с учётом проверки
-managed storage paths.
-
-Официальные entrypoints MySQL и PostgreSQL выполняют соответствующий
-init-каталог только для пустого data-каталога. Добавление или изменение
-init-файла не мигрирует существующую базу. `make down` не удаляет данные ни из
-одного bind mount.
-
-Не редактируйте файлы СУБД внутри `data/` вручную. Container-owned файлы могут
-иметь числовые UID/GID, отличающиеся от пользователя хоста.
-
-## Backup, очистка и переинициализация
-
-Встроенные backup-targets работают только с настроенной MySQL-базой `demo`:
-
-```bash
-make dump
-make restore
-```
-
-С конфигурацией по умолчанию `make dump` записывает `backup/demo.sql`.
-`make restore` читает этот файл и повторно применяет учебные MySQL grants. Для
-сохранения PostgreSQL используйте отдельную процедуру резервного копирования.
-
-> **Внимание:** все перечисленные ниже `clean-*` и `reinit-*` команды
-> destructive и требуют точного подтверждения `CONFIRM=1`.
-
-```bash
-make clean-mysql CONFIRM=1
-make clean-postgres CONFIRM=1
-make clean-all CONFIRM=1
-
-make reinit-mysql CONFIRM=1
-make reinit-postgres CONFIRM=1
-make reinit-all CONFIRM=1
-```
-
-Одиночные команды удаляют только data-каталог выбранной СУБД. Варианты `all`
-удаляют data-каталоги обеих СУБД. Конфигурация, init-файлы, загруженные
-optional samples и backups сохраняются. Затем reinit запускает и проверяет
-выбранные СУБД; `reinit-all` запускает обе без Adminer.
-
-## Диагностика и решение проблем
-
-### Ошибка конфигурации или storage-path validation
-
-Выполните `make check-env` и найдите в ошибке отклонённую переменную и путь.
-Managed data paths должны находиться строго внутри каталога проекта `data/`, а
-sample paths — внутри `samples/`. Они не могут содержать symlink-компоненты,
-пересекаться между собой или использовать зарезервированные каталоги проекта.
-Исправьте `.docker.env`, затем повторите `make check-env` и `make config`.
-
-### Сервис не переходит в состояние готовности
-
-До изменения данных проверьте состояние и логи:
-
-```bash
-make status
-make log SERVICE=mysql
-make log SERVICE=postgres
-```
-
-Убедитесь, что Docker запущен, настроенный host port свободен, а
-`.docker.env` содержит обязательные значения. Исправьте конкретную настройку
-или конфликт порта и снова запустите сервис.
-
-### Изменения init или optional samples не появились
-
-Для уже инициализированного data-каталога это ожидаемое поведение. Проверьте
-настроенные data- и sample-пути и успешность команды подготовки. Если
-существующие данные важны, сохраните их. Используйте соответствующую команду
-`reinit-... CONFIRM=1` только как осознанную последнюю меру: она удаляет данные
-этой СУБД.
-
-### Optional sample неполон или имеет неожиданного владельца
-
-Loader намеренно не перезаписывает и не исправляет неожиданную базу. Повторите
-подходящую подготовку `make samples-mysql` или `make samples-postgres` и
-изучите ошибку. Сохраните нужные данные, прежде чем рассматривать
-переинициализацию с подтверждением.
-
-### Клиент не подключается
-
-Клиенты на хосте используют опубликованный host address и `MYSQL_PORT` или
-`POSTGRES_PORT`, а не имя Compose-сервиса. Adminer использует `mysql` или
-`postgres` внутри Compose-сети. Проверьте `BIND_ADDRESS`, firewall, выбранную
-базу и неадминистративные credentials `DB_USER`.
+- [Начало работы](docs/langs/ru/getting-started.md)
+- [Базы и samples](docs/langs/ru/databases.md)
+- [Проверки и операции](docs/langs/ru/operations.md)
+- [Диагностика](docs/langs/ru/troubleshooting.md)
 
 ## Лицензии и сторонние компоненты
 

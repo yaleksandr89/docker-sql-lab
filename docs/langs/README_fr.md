@@ -80,16 +80,11 @@ bind-mounted.
 | Commande | MySQL | PostgreSQL | Adminer |
 |---|---|---|---|
 | `make up` | Démarre | Démarre | Démarre |
-| `make up-no-ui` | Démarre ou laisse actif | Démarre ou laisse actif | Arrête s’il est actif |
-| `make up-mysql` | Démarre | Ne démarre pas automatiquement | Ne démarre pas automatiquement |
-| `make up-mysql-ui` | Démarre | Ne démarre pas automatiquement | Démarre |
-| `make up-postgres` | Ne démarre pas automatiquement | Démarre | Ne démarre pas automatiquement |
-| `make up-postgres-ui` | Ne démarre pas automatiquement | Démarre | Démarre |
-| `make up-ui` | Ne change rien | Ne change rien | Démarre |
-| `make down-ui` | Ne change rien | Ne change rien | Arrête |
+| `make up-no-ui` | Démarre | Démarre | Arrête |
+| `make up-mysql` | Démarre | Ne démarre pas | Ne démarre pas |
+| `make up-postgres` | Ne démarre pas | Démarre | Ne démarre pas |
 
-Les commandes dédiées à un SGBD n’arrêtent pas l’autre s’il fonctionne déjà.
-Adminer se démarre et s’arrête séparément et n’est pas lié uniquement à MySQL.
+Les commandes d’un SGBD n’arrêtent pas l’autre déjà actif ; Adminer se gère séparément.
 
 ## Connexions
 
@@ -128,129 +123,21 @@ make postgres       # superutilisateur PostgreSQL, base demo
 make postgres-user  # DB_USER, base demo
 ```
 
-## Identifiants
-
-`.docker.env` est créé depuis `.docker.env.example` et ignoré par Git. Gardez
-les mots de passe dans ce fichier ; ne les codez pas en dur dans Compose, SQL
-ou une configuration client versionnée.
+## Identifiants en bref
 
 | Usage | Utilisateur | Mot de passe |
 |---|---|---|
 | Utilisateur pédagogique commun | `DB_USER` | `DB_PASSWORD` |
 | Administrateur MySQL | `root` | `MYSQL_ROOT_PASSWORD` |
-| Administrateur/superutilisateur PostgreSQL | `POSTGRES_SUPERUSER` | `POSTGRES_SUPERUSER_PASSWORD` |
+| Superutilisateur PostgreSQL | `POSTGRES_SUPERUSER` | `POSTGRES_SUPERUSER_PASSWORD` |
 
-`POSTGRES_SUPERUSER` et `DB_USER` doivent être deux rôles différents. Utilisez
-le compte pédagogique pour les exercices courants. Remplacez les mots de passe
-d’exemple avant tout partage ou toute publication de service.
+`POSTGRES_SUPERUSER` et `DB_USER` doivent être des rôles distincts. Utilisez l’utilisateur pédagogique commun pour les exercices et remplacez les mots de passe d’exemple avant toute publication.
 
-## Ports et `BIND_ADDRESS`
+## Bases et contrôles essentiels
 
-| Service | Variable | Valeur d’exemple |
-|---|---|---|
-| MySQL | `MYSQL_PORT` | `3306` |
-| PostgreSQL | `POSTGRES_PORT` | `5432` |
-| Adminer | `ADMINER_PORT` | `8081` |
+Les deux SGBD créent la base obligatoire `demo` avec une table `demo_users` équivalente. Les samples optionnels sont Chinook et Sakila pour MySQL, Pagila et Chinook pour PostgreSQL. Leur préparation ne les importe pas dans des données déjà initialisées.
 
-Par défaut, les trois services ne sont publiés que sur loopback :
-
-```env
-BIND_ADDRESS=127.0.0.1
-```
-
-`127.0.0.1` est la valeur locale par défaut. `BIND_ADDRESS=0.0.0.0` publie les
-ports sur toutes les interfaces. Pour un LAN ou VPN, préférez l’adresse d’une
-interface précise. Ce changement doit être volontaire et tenir compte du
-firewall, de la robustesse des mots de passe et de la confiance accordée au réseau.
-
-## Bases pédagogiques
-
-### Bases `demo` obligatoires
-
-Les deux SGBD initialisent `demo` :
-
-- MySQL : `demo.demo_users`
-- PostgreSQL : `demo.public.demo_users`
-
-Les tables ont les champs équivalents `id`, `name`, `email` et `created_at`,
-avec Alice, Bob, Carol, Dave et Eve. Les contrôles acceptent des lignes
-supplémentaires. `make check-env` impose `MYSQL_DATABASE=demo` et
-`POSTGRES_DATABASE=demo`.
-
-### Samples optionnels
-
-| SGBD | Bases optionnelles | Préparation |
-|---|---|---|
-| MySQL | Chinook, Sakila | `make samples-mysql` |
-| PostgreSQL | Pagila, Chinook | `make samples-postgres` |
-
-La préparation télécharge et vérifie des fichiers upstream épinglés, sans
-démarrer les conteneurs ni importer dans une base déjà initialisée. Les
-téléchargements temporaires restent locaux, ne sont pas commités et sont
-placés sous `MYSQL_SAMPLES_DIR` ou `POSTGRES_SAMPLES_DIR`. Provenance,
-intégrité et licences figurent dans
-[THIRD_PARTY_NOTICES.md](../../THIRD_PARTY_NOTICES.md).
-
-Pour un répertoire data vide :
-
-```bash
-make samples-mysql
-make up-mysql
-
-make samples-postgres
-make up-postgres
-```
-
-Les entrypoints officiels ne traitent init que si le répertoire data est vide.
-Pour ajouter des samples à une instance existante, sauvegardez puis
-réinitialisez volontairement uniquement le SGBD concerné :
-
-```bash
-make samples-mysql
-make reinit-mysql CONFIRM=1
-
-make samples-postgres
-make reinit-postgres CONFIRM=1
-```
-
-Un sample totalement absent est ignoré et n’empêche pas la création de `demo`.
-Un ensemble incomplet ou une base inattendue est refusé, sans réparation ni
-suppression automatique.
-
-## Targets Make publics
-
-`make help` affiche la liste concise.
-
-| Commande | Rôle |
-|---|---|
-| `make init` | Créer `.docker.env`, valider les chemins et créer les répertoires |
-| `make check-env` | Vérifier env, rôles, noms de bases et managed paths |
-| `make pull` | Télécharger les trois images épinglées |
-| `make config` | Valider la configuration Compose développée |
-| `make up`, `make up-no-ui` | Démarrer les deux SGBD avec ou sans Adminer |
-| `make up-mysql`, `make up-mysql-ui` | Démarrer MySQL, avec Adminer en option |
-| `make up-postgres`, `make up-postgres-ui` | Démarrer PostgreSQL, avec Adminer en option |
-| `make up-ui`, `make down-ui` | Démarrer ou arrêter seulement Adminer |
-| `make down` | Arrêter sans supprimer les données bind-mounted |
-| `make status`, `make logs` | Afficher l’état ou suivre tous les logs |
-| `make log SERVICE=postgres` | Suivre un service ; `make log postgres` fonctionne aussi |
-| `make in SERVICE=postgres` | Ouvrir un shell ; `make in postgres` fonctionne aussi |
-| `make mysql`, `make mysql-user` | Ouvrir MySQL comme admin ou `DB_USER` |
-| `make postgres`, `make postgres-user` | Ouvrir PostgreSQL comme superutilisateur ou `DB_USER` |
-| `make samples-mysql`, `make samples-postgres` | Préparer les samples vérifiés |
-| `make check-mysql-access`, `make check-postgres-access` | Contrôler un SGBD actif |
-| `make check` | Valider Compose et l’accès `DB_USER` aux deux SGBD |
-| `make test-storage-paths` | Tester les managed paths sans Docker runtime |
-| `make test-sql-imports` | Smoke-test des deux imports SQL publics |
-| `make mysql-import FILE=... DATABASE=...` | Importer du plain SQL dans MySQL comme `DB_USER` |
-| `make postgres-import FILE=... DATABASE=...` | Importer du plain SQL dans PostgreSQL comme `DB_USER` |
-| `make dump`, `make restore` | Sauvegarder ou restaurer `demo` dans MySQL |
-| `make clean-{mysql,postgres,all} CONFIRM=1` | Supprimer les data directories choisis |
-| `make reinit-{mysql,postgres,all} CONFIRM=1` | Supprimer, recréer et contrôler les bases |
-
-## Contrôles
-
-### Contrôles statiques et locaux
+Ces contrôles statiques ne demandent aucun SGBD actif :
 
 ```bash
 make check-env
@@ -258,135 +145,32 @@ make config
 make test-storage-paths
 ```
 
-`make check-env` crée `.docker.env` s’il manque, puis valide valeurs et chemins.
-`make config` valide le modèle Compose développé. `make test-storage-paths` ne
-demande pas de Docker runtime : il teste les sorties du projet, composants
-symlink, chemins qui se chevauchent ou s’imbriquent et répertoires réservés.
+Après le démarrage des deux SGBD, `make check` vérifie l’accès de `DB_USER` et `make test-sql-imports` exerce les targets publics d’import de confiance. Les pages détaillées couvrent commandes, limites et ordre opératoire sûr.
 
-### Contrôles runtime
+Les répertoires data, init et samples de MySQL et PostgreSQL restent séparés et se configurent via `.docker.env`. Le validateur de managed paths refuse toute sortie de `data/` ou `samples/`, composant symlink, chevauchement ou répertoire réservé. Un sample totalement absent est ignoré ; un ensemble partiel ou une base inattendue est refusé sans réparation automatique.
 
-```bash
-make up-no-ui
-make check
-make test-sql-imports
-make down
-```
+La préparation télécharge des fichiers upstream épinglés, vérifie leur intégrité et les conserve localement ; provenance et licences figurent dans `THIRD_PARTY_NOTICES.md`. Les contrôles runtime vérifient aussi les lignes obligatoires de `demo`, l’accès lecture/écriture pédagogique et les samples installés.
 
-`make check` valide `demo` et l’accès réel de `DB_USER` aux deux SGBD, ainsi que
-les samples installés. `make test-sql-imports` exige que les deux SGBD soient
-actifs ; il appelle `mysql-import` et `postgres-import`, crée des tables
-temporaires aux noms uniques dans `demo`, vérifie les marker rows comme
-`DB_USER` puis ne supprime que ces tables. C’est un smoke-test du flux trusted
-import, ni un sandbox ni une preuve de sécurité pour du SQL non fiable.
+## Sécurité et cycle de vie
 
-## Imports SQL de confiance
+- `BIND_ADDRESS=127.0.0.1` ne publie les services que sur loopback.
+- `BIND_ADDRESS=0.0.0.0` les publie sur toutes les interfaces ; configurez
+  volontairement firewall, credentials robustes et confiance réseau.
+- Les entrypoints officiels n’exécutent init que pour un data directory vide.
+- `make mysql-import` et `make postgres-import` n’acceptent que du SQL de
+  confiance. Ils ne créent pas de sandbox : une exécution partielle est
+  possible sans rollback automatique complet. Faites un backup auparavant.
+- `make dump` et `make restore` couvrent uniquement MySQL `demo` ; aucun
+  target de backup PostgreSQL n’est intégré.
+- Tous les targets `clean-*` et `reinit-*` sont destructifs et exigent
+  exactement `CONFIRM=1`.
 
-```bash
-make mysql-import FILE=path/to/file.sql DATABASE=demo
-make postgres-import FILE=path/to/file.sql DATABASE=demo
-```
+## Documentation
 
-Pour les deux targets :
-
-- `FILE` et `DATABASE` sont obligatoires.
-- Le fichier local plain SQL doit exister, être lisible et non vide.
-- La base doit déjà exister ; les bases système sont interdites.
-- L’import s’exécute comme `DB_USER`, sans créer de base ni accorder de grants.
-- `DATABASE` choisit la connexion initiale, mais ne crée pas de sandbox.
-- Les qualified names, commandes client/session et grants effectifs peuvent
-  atteindre d’autres objets accessibles.
-- Une exécution partielle est possible ; aucun rollback automatique n’est promis.
-- Effectuez une sauvegarde avant un import important.
-- gzip, archives et backups PostgreSQL custom-format ne sont pas pris en charge.
-
-## Cycle de vie data/init
-
-```text
-data/
-├── mysql/
-└── postgres/
-
-initdb/
-├── mysql/
-└── postgres/
-```
-
-| SGBD | Data | Init | Samples optionnels |
-|---|---|---|---|
-| MySQL | `MYSQL_DATA_DIR` (`./data/mysql`) | `MYSQL_INITDB_DIR` (`./initdb/mysql`) | `MYSQL_SAMPLES_DIR` (`./samples/mysql`) |
-| PostgreSQL | `POSTGRES_DATA_DIR` (`./data/postgres`) | `POSTGRES_INITDB_DIR` (`./initdb/postgres`) | `POSTGRES_SAMPLES_DIR` (`./samples/postgres`) |
-
-Les chemins data et samples se configurent dans `.docker.env` sous contrôle
-des managed paths. Les entrypoints exécutent init uniquement avec un data
-directory vide ; modifier init ne migre pas une base existante. `make down` ne
-supprime aucun bind mount. Ne modifiez pas manuellement les fichiers de
-`data/` : ils peuvent appartenir à des UID/GID numériques du conteneur.
-
-## Sauvegarde, nettoyage et réinitialisation
-
-Les targets intégrés couvrent uniquement la base MySQL `demo` configurée :
-
-```bash
-make dump
-make restore
-```
-
-`make dump` écrit `backup/demo.sql` ; `make restore` le lit et réapplique les
-grants pédagogiques MySQL. Utilisez une procédure distincte pour PostgreSQL.
-
-> **Attention :** tous les targets `clean-*` et `reinit-*` sont destructifs et
-> exigent la confirmation exacte `CONFIRM=1`.
-
-```bash
-make clean-mysql CONFIRM=1
-make clean-postgres CONFIRM=1
-make clean-all CONFIRM=1
-
-make reinit-mysql CONFIRM=1
-make reinit-postgres CONFIRM=1
-make reinit-all CONFIRM=1
-```
-
-Les commandes unitaires ne suppriment que les données du SGBD choisi ; `all`
-supprime celles des deux. Configuration, init, samples et backups restent en
-place. La réinitialisation redémarre et contrôle les SGBD choisis ;
-`reinit-all` démarre les deux sans Adminer.
-
-## Diagnostic et dépannage
-
-### Échec de configuration ou de validation des chemins
-
-Lancez `make check-env`. Les data paths doivent rester strictement sous
-`data/` et les samples sous `samples/` ; aucun symlink, chevauchement ou
-répertoire réservé n’est admis. Corrigez `.docker.env` puis lancez `make config`.
-
-### Un service n’est pas prêt
-
-```bash
-make status
-make log SERVICE=mysql
-make log SERVICE=postgres
-```
-
-Vérifiez Docker, le port, `.docker.env` et les logs avant de toucher aux données.
-
-### Les changements init ou les samples n’apparaissent pas
-
-C’est normal si data est déjà initialisé. Vérifiez chemins et préparation,
-sauvegardez les données importantes et n’utilisez `reinit-... CONFIRM=1` qu’en
-dernier recours volontaire.
-
-### Sample incomplet ou propriétaire inattendu
-
-Le loader ne remplace ni ne répare une base inattendue. Relancez
-`make samples-mysql` ou `make samples-postgres` et inspectez l’erreur ;
-préservez les données avant toute réinitialisation.
-
-### Un client ne se connecte pas
-
-Les clients hôtes utilisent l’adresse publiée et `MYSQL_PORT` ou
-`POSTGRES_PORT` ; Adminer utilise `mysql` ou `postgres` dans Compose. Vérifiez
-`BIND_ADDRESS`, firewall, base sélectionnée et identifiants `DB_USER`.
+- [Bien démarrer](fr/getting-started.md)
+- [Bases et samples](fr/databases.md)
+- [Contrôles et opérations](fr/operations.md)
+- [Diagnostic et dépannage](fr/troubleshooting.md)
 
 ## Licences et mentions de tiers
 
