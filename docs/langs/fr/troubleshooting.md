@@ -2,9 +2,17 @@
 
 [← Retour au README](../README_fr.md)
 
-[Русский](../ru/troubleshooting.md) | [English](../en/troubleshooting.md) | [Español](../es/troubleshooting.md) | [中文](../zh/troubleshooting.md) | **Français — Sélectionné** | [Deutsch](../de/troubleshooting.md)
+## Langue
 
-**Pages dans cette langue:** [Prise en main](getting-started.md) · [Bases et samples](databases.md) · [Contrôles et opérations](operations.md) · **Diagnostic et dépannage**
+| Русский | English | Español | 中文 | Français | Deutsch |
+| --- | --- | --- | --- | --- | --- |
+| [Русский](../ru/troubleshooting.md) | [English](../en/troubleshooting.md) | [Español](../es/troubleshooting.md) | [中文](../zh/troubleshooting.md) | **Sélectionné** | [Deutsch](../de/troubleshooting.md) |
+
+## Section
+
+| Prise en main | Bases et samples | Contrôles et opérations | Diagnostic et dépannage |
+| --- | --- | --- | --- |
+| [Prise en main](getting-started.md) | [Bases et samples](databases.md) | [Contrôles et opérations](operations.md) | **Sélectionné** |
 
 Collectez d’abord le diagnostic, puis corrigez la cause précise. Si une
 réinitialisation reste nécessaire, effectuez un backup et n’utilisez

@@ -2,12 +2,22 @@
 
 [← Zurück zur README](../README_de.md)
 
-[Русский](../ru/operations.md) | [English](../en/operations.md) | [Español](../es/operations.md) | [中文](../zh/operations.md) | [Français](../fr/operations.md) | **Deutsch — Ausgewählt**
+## Sprache
 
-**Seiten in dieser Sprache:** [Erste Schritte](getting-started.md) · [Datenbanken und Samples](databases.md) · **Prüfungen und Betrieb** · [Diagnose und Fehlerbehebung](troubleshooting.md)
+| Русский | English | Español | 中文 | Français | Deutsch |
+| --- | --- | --- | --- | --- | --- |
+| [Русский](../ru/operations.md) | [English](../en/operations.md) | [Español](../es/operations.md) | [中文](../zh/operations.md) | [Français](../fr/operations.md) | **Ausgewählt** |
+
+## Abschnitt
+
+| Erste Schritte | Datenbanken und Samples | Prüfungen und Betrieb | Diagnose und Fehlerbehebung |
+| --- | --- | --- | --- |
+| [Erste Schritte](getting-started.md) | [Datenbanken und Samples](databases.md) | **Ausgewählt** | [Diagnose und Fehlerbehebung](troubleshooting.md) |
 
 <a id="section-make-targets"></a>
 ## Öffentliche Make targets
+
+Öffentliche Targets und ihre Implementierung stehen im [`Makefile`](../../../Makefile).
 
 Wichtige Targets sind `make init`, `make up`, `make down`, `make check`,
 `make test-storage-paths`, `make test-sql-imports`, `make mysql-import`

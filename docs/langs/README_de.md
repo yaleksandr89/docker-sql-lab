@@ -14,9 +14,11 @@
 | --- | --- | --- | --- | --- | --- |
 | [Русский](../../README.md) | [English](README_en.md) | [Español](README_es.md) | [中文](README_zh.md) | [Français](README_fr.md) | **Ausgewählt** |
 
-Eine lokale Docker-Compose-Umgebung zum Lernen und Vergleichen von MySQL und
-PostgreSQL. Beide DBMS lassen sich einzeln oder gemeinsam ausführen; Adminer
-wird nur bei Bedarf als Browseroberfläche zugeschaltet.
+Eine lokale Docker-Compose-Umgebung zum Üben von SQL sowie zum Kennenlernen
+und Vergleichen von MySQL und PostgreSQL. Beide DBMS lassen sich einzeln oder
+gemeinsam starten. Die kompakte `demo`-Datenbank entsteht automatisch;
+optionale Sakila-, Pagila- und Chinook-Datensätze liefern sofort abfragbare
+Übungsdaten. Adminer wird nur bei Bedarf aktiviert.
 
 ## Stack und festgelegte Versionen
 
@@ -26,53 +28,92 @@ wird nur bei Bedarf als Browseroberfläche zugeschaltet.
 - Docker Compose v2
 - GNU Make und Bash für Projektbefehle und Initialisierungsskripte
 
-Die Image-Versionen sind in `.docker.env` festgelegt. Verwenden Sie das Lab
-nicht ungeprüft als Produktionsvorlage; Zugangsdaten, Netzwerkfreigabe,
-Speicherung, Backups und Betrieb benötigen eine eigene Bewertung.
+Die festgelegten Standardwerte stehen in
+[`.docker.env.example`](../../.docker.env.example); `make init` erstellt daraus
+die lokale `.docker.env`. Die Services stehen in
+[`docker-compose.yml`](../../docker-compose.yml).
+
+<details>
+<summary>⚠️ Wichtig: Dies ist eine Lernumgebung</summary>
+
+Das Projekt ist kein produktionsfertiges Template. Für externe Nutzung sind
+eigene Entscheidungen zu Zugangsdaten, Netzwerkfreigabe, Storage, Backups und
+Betrieb nötig.
+
+</details>
 
 ## Hauptfunktionen
 
-- Unabhängige MySQL- und PostgreSQL-Dienste, die auch gemeinsam laufen.
-- Optionaler Adminer für beide DBMS, ohne Bindung an einen bestimmten Dienst.
-- Obligatorische `demo`-Datenbank in jedem DBMS mit denselben fünf Beispieldatensätzen.
-- Optionale Samples: Sakila und Chinook für MySQL, Pagila und Chinook für PostgreSQL.
-- Getrennte bind-mounted Verzeichnisse für data, init und samples je DBMS.
-- Gemeinsame Lern-Zugangsdaten und getrennte Administrator-Zugangsdaten.
-- Statische Konfigurationsprüfungen, Schutz der managed storage paths,
-  Runtime-Zugriffsprüfungen und Smoke-Test für vertrauenswürdige SQL-Imports.
-- Explizite Bestätigung für destruktive Bereinigung und Neuinitialisierung.
+- MySQL und PostgreSQL laufen einzeln oder gemeinsam.
+- Jedes DBMS hat eine obligatorische `demo` mit denselben Seed-Datensätzen.
+- Optional: Sakila und Chinook für MySQL, Pagila und Chinook für PostgreSQL.
+- Adminer ist eine unabhängige optionale Oberfläche für beide DBMS.
+- Daten-, Init- und Sample-Verzeichnisse sind je DBMS getrennt eingebunden.
+- Prüfungen, vertrauenswürdige SQL-Imports und destructive Aktionen bündelt das
+  [`Makefile`](../../Makefile).
 
 ## Voraussetzungen
 
-- Docker Engine oder Docker Desktop mit dem Befehl `docker compose` v2.
-- GNU Make, Bash und die von den Skripten verwendeten Unix-Werkzeuge (`awk`,
-  `sed`, `grep`, `find`, `realpath` und `stat`).
-- Für optionale Samples: `curl` und `git`; für MySQL zusätzlich `unzip` und
-  `sha256sum`.
+1. Docker Engine oder Docker Desktop mit `docker compose` v2.
+2. GNU Make, Bash und die von den Skripten verwendeten Unix-CLI-Basiswerkzeuge.
 
-Führen Sie Befehle im Repository-Stamm aus. Der Standardbranch des Projekts ist
+Empfohlen: Linux; macOS mit Docker Desktop; Windows mit Docker Desktop und
+WSL2. Befehle werden im Repository-Stamm ausgeführt. Der Standardbranch ist
 `master`.
 
 ## Schnellstart
-
-Erstellen Sie `.docker.env` aus dem versionierten Beispiel, prüfen Sie die
-Pfade, legen Sie Arbeitsverzeichnisse an und starten Sie das vollständige Lab:
 
 ```bash
 make init
 make up
 ```
 
-`make up` startet MySQL, PostgreSQL und Adminer. Mit der Standardkonfiguration
-ist Adminer unter `http://127.0.0.1:8081` erreichbar.
+`make init` erzeugt die lokale `.docker.env` aus
+[`.docker.env.example`](../../.docker.env.example), prüft verwaltete Pfade und
+legt Arbeitsverzeichnisse an. Beim ersten Containerstart initialisieren die
+offiziellen Entrypoints beide DBMS. Auch ohne optionale Samples erhalten Sie
+MySQL und PostgreSQL mit `demo` und Seed-Datensätzen.
+
+`make up` startet MySQL, PostgreSQL und Adminer; `make up-no-ui` startet beide
+DBMS ohne Adminer. Standardmäßig ist Adminer unter
+`http://127.0.0.1:8081` erreichbar.
+
+Startmodi, Verbindungen und Zugangsdaten:
+[Erste Schritte](de/getting-started.md).
+
+### Fertige Übungsdaten gewünscht?
+
+Samples sind optional: `demo` wird immer erstellt; Sakila und Chinook sind für MySQL verfügbar, Pagila und Chinook für PostgreSQL.
+
+**Erster Start mit leeren Datenverzeichnissen**
 
 ```bash
-make status
-make logs
-make down
+make init
+make samples-mysql
+make samples-postgres
+make up
 ```
 
-`make down` entfernt Container und Netzwerk, behält aber bind-mounted Daten.
+Bereiten Sie Samples vor der ersten Initialisierung vor; die Entrypoints laden sie zusammen mit `demo`.
+
+> **Warnung:** Wurde ein Datenverzeichnis ohne Samples initialisiert, erfordert das Hinzufügen ein Backup und eine ausdrücklich bestätigte destructive Neuinitialisierung.
+
+<details>
+<summary>Das Lab lief bereits: Samples hinzufügen oder erneut verwenden</summary>
+
+**Ohne Samples initialisiert.** `make up` wendet neue Init-/Sample-Dateien nicht an. Sichern Sie wichtige Daten und wählen Sie dann die passende Variante:
+
+- MySQL: `make samples-mysql`, danach `make reinit-mysql CONFIRM=1`.
+- PostgreSQL: `make samples-postgres`, danach `make reinit-postgres CONFIRM=1`.
+- Beide DBMS: `make samples-mysql`, `make samples-postgres`, danach `make reinit-all CONFIRM=1`.
+
+> **Warnung:** `reinit-*` löscht die gewählten Daten und läuft nur mit dem exakten `CONFIRM=1`.
+
+**Samples bereits installiert.** Nutzen Sie `make up` oder das gewünschte `make up-*`: Erneuter download und reinit entfallen; die Datenbanken bleiben im bind-mounted storage erhalten.
+
+</details>
+
+Details: [Datenbanken und Samples](de/databases.md).
 
 ## Startmodi
 
@@ -83,45 +124,23 @@ make down
 | `make up-mysql` | Startet | Startet nicht | Startet nicht |
 | `make up-postgres` | Startet nicht | Startet | Startet nicht |
 
-Einzel-DBMS-Befehle stoppen das andere laufende DBMS nicht; Adminer wird separat verwaltet.
+Ein Einzel-DBMS-Befehl stoppt das andere nicht; Adminer wird separat verwaltet.
+Alle Targets stehen im [`Makefile`](../../Makefile).
 
-## Verbindungen
+## Verbindungen und verfügbare Datenbanken
 
-### Adminer
+Im Compose-Netz nutzt Adminer `mysql` und `postgres`. Host-Clients nutzen
+`127.0.0.1` und `MYSQL_PORT` oder `POSTGRES_PORT`. Für Übungen dienen
+`DB_USER` und `DB_PASSWORD`.
 
-Im Compose-Netzwerk bietet Adminer zwei vordefinierte Server an:
+| DBMS | Immer verfügbar | Nach optionaler Sample-Initialisierung |
+|---|---|---|
+| MySQL | `demo` | `sakila`, `chinook` |
+| PostgreSQL | `demo` | `pagila`, `chinook` |
 
-```text
-MySQL (mysql)
-PostgreSQL (postgres)
-```
-
-Wählen Sie einen Server und melden Sie sich mit `DB_USER`, `DB_PASSWORD` und
-einer Datenbank wie `demo` an. `mysql` und `postgres` sind interne
-Compose-Dienstnamen, keine Hostnamen für Desktop-Clients.
-
-### Clients auf dem Host
-
-| DBMS | Standardhost | Portvariable | Benutzer | Standarddatenbank |
-|---|---|---|---|---|
-| MySQL | `127.0.0.1` | `MYSQL_PORT` | `DB_USER` | `demo` |
-| PostgreSQL | `127.0.0.1` | `POSTGRES_PORT` | `DB_USER` | `demo` |
-
-DataGrip, DBeaver, PhpStorm und Host-CLI-Werkzeuge nutzen veröffentlichte
-Adresse und Port. Nach einer Änderung von `BIND_ADDRESS` verwenden Sie bei
-Bedarf die erreichbare Adresse dieser Schnittstelle.
-
-### CLI in den Containern
-
-Passwörter werden über die Containerumgebung übergeben und nicht in die
-Shell-History geschrieben:
-
-```bash
-make mysql          # MySQL-Administrator, Datenbank demo
-make mysql-user     # DB_USER, Datenbank demo
-make postgres       # PostgreSQL-Superuser, Datenbank demo
-make postgres-user  # DB_USER, Datenbank demo
-```
+Optionale Datenbanken existieren erst nach der tatsächlichen Initialisierung.
+Details: [Start und Verbindungen](de/getting-started.md) ·
+[Datenbanken und Samples](de/databases.md).
 
 ## Zugangsdaten im Überblick
 
@@ -131,13 +150,13 @@ make postgres-user  # DB_USER, Datenbank demo
 | MySQL-Administrator | `root` | `MYSQL_ROOT_PASSWORD` |
 | PostgreSQL-Superuser | `POSTGRES_SUPERUSER` | `POSTGRES_SUPERUSER_PASSWORD` |
 
-`POSTGRES_SUPERUSER` und `DB_USER` müssen verschiedene Rollen sein. Verwenden Sie den gemeinsamen Lernbenutzer für Übungen und ersetzen Sie Beispielpasswörter vor einer Veröffentlichung.
+`POSTGRES_SUPERUSER` und `DB_USER` müssen verschieden sein. Verwenden Sie für
+Übungen den Lernbenutzer und ersetzen Sie Beispielpasswörter vor Freigaben.
 
 ## Datenbanken und wichtige Prüfungen
 
-Beide DBMS erstellen die obligatorische Datenbank `demo` mit einer entsprechenden `demo_users`-Tabelle. Optionale Samples sind Chinook und Sakila für MySQL sowie Pagila und Chinook für PostgreSQL. Ihre Vorbereitung importiert nichts in bereits initialisierte Daten.
-
-Diese statischen Prüfungen benötigen keine laufenden Datenbanken:
+Beide `demo`-Datenbanken enthalten eine äquivalente Tabelle `demo_users` mit
+fünf Zeilen. Diese Prüfungen brauchen keine laufenden DBMS:
 
 ```bash
 make check-env
@@ -145,39 +164,35 @@ make config
 make test-storage-paths
 ```
 
-Nach dem Start beider DBMS prüft `make check` den `DB_USER`-Zugriff; `make test-sql-imports` testet die öffentlichen trusted import targets. Die Detailseiten beschreiben alle Befehle, Einschränkungen und die sichere Reihenfolge.
-
-Die Data-, Init- und Sample-Verzeichnisse von MySQL und PostgreSQL bleiben getrennt und werden über `.docker.env` konfiguriert. Der Managed-path-Validator lehnt Orte außerhalb von `data/` oder `samples/`, Symlink-Komponenten, Überschneidungen und reservierte Verzeichnisse ab. Ein vollständig fehlendes Sample wird übersprungen; unvollständige Dateien oder eine unerwartete Sample-Datenbank werden ohne automatische Reparatur abgelehnt.
-
-Die Vorbereitung lädt festgelegte Upstream-Dateien, prüft ihre Integrität und behält sie lokal; Herkunft und Lizenzen stehen in `THIRD_PARTY_NOTICES.md`. Runtime-Prüfungen validieren außerdem die obligatorischen `demo`-Zeilen, Lese-/Schreibzugriff des Lernbenutzers und installierte Samples.
+Nach dem Start prüft `make check` die `demo` und den Zugriff von `DB_USER`;
+`make test-sql-imports` testet die öffentlichen Trusted-Import-Targets.
+Reihenfolge und Grenzen:
+[Prüfungen und Betrieb](de/operations.md).
 
 ## Sicherheit und Lebenszyklus
 
-- `BIND_ADDRESS=127.0.0.1` veröffentlicht Dienste nur auf loopback.
-- `BIND_ADDRESS=0.0.0.0` veröffentlicht sie auf allen Schnittstellen;
-  konfigurieren Sie Firewall, starke credentials und Netzvertrauen bewusst.
-- Offizielle Entrypoints führen init nur für ein leeres data directory aus.
+- `BIND_ADDRESS=127.0.0.1` veröffentlicht nur auf Loopback.
+- `BIND_ADDRESS=0.0.0.0` öffnet alle Interfaces; richten Sie vorher Firewall,
+  starke Zugangsdaten und ein vertrauenswürdiges Netz ein.
+- Offizielle Entrypoints führen Init nur bei leeren Daten aus.
 - `make mysql-import` und `make postgres-import` akzeptieren nur
-  vertrauenswürdiges SQL. Sie erzeugen keine isolierte Umgebung (`sandbox`): partielle Ausführung ohne
-  vollständigen automatic rollback ist möglich. Erstellen Sie vorher ein Backup.
-- `make dump` und `make restore` decken nur MySQL `demo` ab; ein
-  integriertes PostgreSQL-backup target fehlt.
-- Alle `clean-*`- und `reinit-*`-Targets sind destruktiv und verlangen die
-  exakte Bestätigung `CONFIRM=1`.
+  vertrauenswürdiges SQL. Sie sind keine Sandbox: partielle Ausführung ohne
+  vollständigen automatischen Rollback ist möglich.
+  Prüfen Sie vor einem wichtigen Import die SQL-Datei und erstellen Sie ein geeignetes Backup.
+- `make dump` und `make restore` sichern nur MySQL `demo`; ein eingebautes
+  PostgreSQL-Backup-Target fehlt.
+- Alle `clean-*`- und `reinit-*`-Befehle sind destructive und verlangen exakt
+  `CONFIRM=1`.
 
-## Dokumentation
+Sichere Abläufe: [Prüfungen und Betrieb](de/operations.md). Bei Fehlern zuerst
+Diagnosedaten sammeln:
+[Diagnose und Fehlerbehebung](de/troubleshooting.md).
 
-- [Erste Schritte](de/getting-started.md)
-- [Datenbanken und Samples](de/databases.md)
-- [Prüfungen und Betrieb](de/operations.md)
-- [Diagnose und Fehlerbehebung](de/troubleshooting.md)
+## Lizenzen der Übungsdaten
 
-## Lizenzen und Hinweise zu Drittanbietern
-
-Docker SQL Lab steht unter der MIT License:
-[LICENSE.md](../../LICENSE.md). Optionale Samples behalten ihre
-upstream-Lizenzen; Quellen, festgelegte Revisionen, Integritätswerte und Texte
-stehen in [THIRD_PARTY_NOTICES.md](../../THIRD_PARTY_NOTICES.md).
+Optionale Datensätze behalten Lizenzen und Hinweise ihrer Upstream-Projekte.
+Herkunft, festgelegte Revisionen, Integrität und Lizenztexte stehen in
+[`THIRD_PARTY_NOTICES.md`](../../THIRD_PARTY_NOTICES.md).
 
 <p align="center">
   <a href="https://yaleksandr89.github.io/" title="yaleksandr89.github.io">

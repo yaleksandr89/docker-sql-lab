@@ -2,9 +2,17 @@
 
 [← Zurück zur README](../README_de.md)
 
-[Русский](../ru/databases.md) | [English](../en/databases.md) | [Español](../es/databases.md) | [中文](../zh/databases.md) | [Français](../fr/databases.md) | **Deutsch — Ausgewählt**
+## Sprache
 
-**Seiten in dieser Sprache:** [Erste Schritte](getting-started.md) · **Datenbanken und Samples** · [Prüfungen und Betrieb](operations.md) · [Diagnose und Fehlerbehebung](troubleshooting.md)
+| Русский | English | Español | 中文 | Français | Deutsch |
+| --- | --- | --- | --- | --- | --- |
+| [Русский](../ru/databases.md) | [English](../en/databases.md) | [Español](../es/databases.md) | [中文](../zh/databases.md) | [Français](../fr/databases.md) | **Ausgewählt** |
+
+## Abschnitt
+
+| Erste Schritte | Datenbanken und Samples | Prüfungen und Betrieb | Diagnose und Fehlerbehebung |
+| --- | --- | --- | --- |
+| [Erste Schritte](getting-started.md) | **Ausgewählt** | [Prüfungen und Betrieb](operations.md) | [Diagnose und Fehlerbehebung](troubleshooting.md) |
 
 <a id="section-demo"></a>
 ## Obligatorische `demo`-Datenbanken
@@ -29,6 +37,8 @@ zulässig. `make check-env` verlangt `MYSQL_DATABASE=demo` und
 
 <a id="section-sample-preparation"></a>
 ## Samples vorbereiten
+
+Die Vorbereitung benötigt `curl` und `git`; MySQL-Samples erfordern zusätzlich `unzip` und `sha256sum`.
 
 Die Vorbereitung lädt festgelegte upstream-Dateien herunter und prüft sie,
 startet aber keine Container und importiert nichts in bereits initialisierte

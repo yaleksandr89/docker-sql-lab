@@ -2,9 +2,17 @@
 
 [← Вернуться к README](../../../README.md)
 
-**Русский — Выбран** | [English](../en/troubleshooting.md) | [Español](../es/troubleshooting.md) | [中文](../zh/troubleshooting.md) | [Français](../fr/troubleshooting.md) | [Deutsch](../de/troubleshooting.md)
+## Язык
 
-**Разделы этого языка:** [Начало работы](getting-started.md) · [Базы и samples](databases.md) · [Проверки и операции](operations.md) · **Диагностика**
+| Русский | English | Español | 中文 | Français | Deutsch |
+| --- | --- | --- | --- | --- | --- |
+| **Выбран** | [English](../en/troubleshooting.md) | [Español](../es/troubleshooting.md) | [中文](../zh/troubleshooting.md) | [Français](../fr/troubleshooting.md) | [Deutsch](../de/troubleshooting.md) |
+
+## Раздел
+
+| Начало работы | Базы и samples | Проверки и операции | Диагностика |
+| --- | --- | --- | --- |
+| [Начало работы](getting-started.md) | [Базы и samples](databases.md) | [Проверки и операции](operations.md) | **Выбран** |
 
 Сначала соберите диагностику, затем исправьте конкретную причину. Если
 изменение всё же требует переинициализации, сначала сделайте backup и только

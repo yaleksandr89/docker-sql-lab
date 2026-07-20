@@ -2,9 +2,17 @@
 
 [← Retour au README](../README_fr.md)
 
-[Русский](../ru/getting-started.md) | [English](../en/getting-started.md) | [Español](../es/getting-started.md) | [中文](../zh/getting-started.md) | **Français — Sélectionné** | [Deutsch](../de/getting-started.md)
+## Langue
 
-**Pages dans cette langue:** **Prise en main** · [Bases et samples](databases.md) · [Contrôles et opérations](operations.md) · [Diagnostic et dépannage](troubleshooting.md)
+| Русский | English | Español | 中文 | Français | Deutsch |
+| --- | --- | --- | --- | --- | --- |
+| [Русский](../ru/getting-started.md) | [English](../en/getting-started.md) | [Español](../es/getting-started.md) | [中文](../zh/getting-started.md) | **Sélectionné** | [Deutsch](../de/getting-started.md) |
+
+## Section
+
+| Prise en main | Bases et samples | Contrôles et opérations | Diagnostic et dépannage |
+| --- | --- | --- | --- |
+| **Sélectionné** | [Bases et samples](databases.md) | [Contrôles et opérations](operations.md) | [Diagnostic et dépannage](troubleshooting.md) |
 
 <a id="section-requirements"></a>
 ## Prérequis
@@ -113,7 +121,7 @@ make postgres-user  # DB_USER, base demo
 <a id="section-credentials"></a>
 ## Identifiants
 
-`.docker.env` est créé depuis `.docker.env.example` et ignoré par Git. Gardez
+`.docker.env` est créé depuis [`.docker.env.example`](../../../.docker.env.example) et ignoré par Git. Gardez
 les mots de passe dans ce fichier ; ne les codez pas en dur dans Compose, SQL
 ou une configuration client versionnée.
 

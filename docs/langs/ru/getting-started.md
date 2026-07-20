@@ -2,9 +2,17 @@
 
 [← Вернуться к README](../../../README.md)
 
-**Русский — Выбран** | [English](../en/getting-started.md) | [Español](../es/getting-started.md) | [中文](../zh/getting-started.md) | [Français](../fr/getting-started.md) | [Deutsch](../de/getting-started.md)
+## Язык
 
-**Разделы этого языка:** **Начало работы** · [Базы и samples](databases.md) · [Проверки и операции](operations.md) · [Диагностика](troubleshooting.md)
+| Русский | English | Español | 中文 | Français | Deutsch |
+| --- | --- | --- | --- | --- | --- |
+| **Выбран** | [English](../en/getting-started.md) | [Español](../es/getting-started.md) | [中文](../zh/getting-started.md) | [Français](../fr/getting-started.md) | [Deutsch](../de/getting-started.md) |
+
+## Раздел
+
+| Начало работы | Базы и samples | Проверки и операции | Диагностика |
+| --- | --- | --- | --- |
+| **Выбран** | [Базы и samples](databases.md) | [Проверки и операции](operations.md) | [Диагностика](troubleshooting.md) |
 
 <a id="section-requirements"></a>
 ## Требования
@@ -117,7 +125,7 @@ make postgres-user  # DB_USER, база demo
 <a id="section-credentials"></a>
 ## Учётные данные
 
-При копировании `.docker.env.example` создаётся `.docker.env`; этот файл
+При копировании [`.docker.env.example`](../../../.docker.env.example) создаётся `.docker.env`; этот файл
 исключён из Git. Храните пароли в нём и не хардкодьте их в Compose, SQL или
 отслеживаемой конфигурации клиентов.
 

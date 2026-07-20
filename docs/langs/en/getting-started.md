@@ -2,9 +2,17 @@
 
 [← Back to README](../README_en.md)
 
-[Русский](../ru/getting-started.md) | **English — Selected** | [Español](../es/getting-started.md) | [中文](../zh/getting-started.md) | [Français](../fr/getting-started.md) | [Deutsch](../de/getting-started.md)
+## Language
 
-**Pages in this language:** **Getting started** · [Databases and samples](databases.md) · [Validation and operations](operations.md) · [Troubleshooting](troubleshooting.md)
+| Русский | English | Español | 中文 | Français | Deutsch |
+| --- | --- | --- | --- | --- | --- |
+| [Русский](../ru/getting-started.md) | **Selected** | [Español](../es/getting-started.md) | [中文](../zh/getting-started.md) | [Français](../fr/getting-started.md) | [Deutsch](../de/getting-started.md) |
+
+## Section
+
+| Getting started | Databases and samples | Validation and operations | Troubleshooting |
+| --- | --- | --- | --- |
+| **Selected** | [Databases and samples](databases.md) | [Validation and operations](operations.md) | [Troubleshooting](troubleshooting.md) |
 
 <a id="section-requirements"></a>
 ## Requirements
@@ -119,7 +127,7 @@ make postgres-user  # DB_USER, demo database
 <a id="section-credentials"></a>
 ## Credentials
 
-Copying `.docker.env.example` creates `.docker.env`; the latter is ignored by
+Copying [`.docker.env.example`](../../../.docker.env.example) creates `.docker.env`; the latter is ignored by
 Git. Keep passwords there and do not hardcode them in Compose, SQL, or client
 configuration committed to the repository.
 

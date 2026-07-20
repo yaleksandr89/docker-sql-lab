@@ -2,9 +2,17 @@
 
 [← Вернуться к README](../../../README.md)
 
-**Русский — Выбран** | [English](../en/databases.md) | [Español](../es/databases.md) | [中文](../zh/databases.md) | [Français](../fr/databases.md) | [Deutsch](../de/databases.md)
+## Язык
 
-**Разделы этого языка:** [Начало работы](getting-started.md) · **Базы и samples** · [Проверки и операции](operations.md) · [Диагностика](troubleshooting.md)
+| Русский | English | Español | 中文 | Français | Deutsch |
+| --- | --- | --- | --- | --- | --- |
+| **Выбран** | [English](../en/databases.md) | [Español](../es/databases.md) | [中文](../zh/databases.md) | [Français](../fr/databases.md) | [Deutsch](../de/databases.md) |
+
+## Раздел
+
+| Начало работы | Базы и samples | Проверки и операции | Диагностика |
+| --- | --- | --- | --- |
+| [Начало работы](getting-started.md) | **Выбран** | [Проверки и операции](operations.md) | [Диагностика](troubleshooting.md) |
 
 <a id="section-demo"></a>
 ## Обязательные базы `demo`
@@ -31,6 +39,8 @@
 
 <a id="section-sample-preparation"></a>
 ## Подготовка samples
+
+Для подготовки нужны `curl` и `git`; MySQL samples дополнительно требуют `unzip` и `sha256sum`.
 
 Команды подготовки загружают и проверяют закреплённые upstream-файлы, но не
 запускают контейнеры и не импортируют данные в уже инициализированную СУБД.

@@ -2,9 +2,17 @@
 
 [← 返回 README](../README_zh.md)
 
-[Русский](../ru/troubleshooting.md) | [English](../en/troubleshooting.md) | [Español](../es/troubleshooting.md) | **中文 — 已选择** | [Français](../fr/troubleshooting.md) | [Deutsch](../de/troubleshooting.md)
+## 语言
 
-**本语言页面:** [入门](getting-started.md) · [数据库与 samples](databases.md) · [检查与运维](operations.md) · **诊断与故障排除**
+| Русский | English | Español | 中文 | Français | Deutsch |
+| --- | --- | --- | --- | --- | --- |
+| [Русский](../ru/troubleshooting.md) | [English](../en/troubleshooting.md) | [Español](../es/troubleshooting.md) | **已选择** | [Français](../fr/troubleshooting.md) | [Deutsch](../de/troubleshooting.md) |
+
+## 章节
+
+| 入门 | 数据库与 samples | 检查与运维 | 诊断与故障排除 |
+| --- | --- | --- | --- |
+| [入门](getting-started.md) | [数据库与 samples](databases.md) | [检查与运维](operations.md) | **已选择** |
 
 先收集诊断信息，再针对原因修正。若仍需重新初始化，请先做
 backup，并仅将确认后的 `reinit-... CONFIRM=1` 作为有意的最后手段。

@@ -2,9 +2,17 @@
 
 [← Volver al README](../README_es.md)
 
-[Русский](../ru/troubleshooting.md) | [English](../en/troubleshooting.md) | **Español — Seleccionado** | [中文](../zh/troubleshooting.md) | [Français](../fr/troubleshooting.md) | [Deutsch](../de/troubleshooting.md)
+## Idioma
 
-**Páginas de este idioma:** [Primeros pasos](getting-started.md) · [Bases y samples](databases.md) · [Comprobaciones y operaciones](operations.md) · **Diagnóstico**
+| Русский | English | Español | 中文 | Français | Deutsch |
+| --- | --- | --- | --- | --- | --- |
+| [Русский](../ru/troubleshooting.md) | [English](../en/troubleshooting.md) | **Seleccionado** | [中文](../zh/troubleshooting.md) | [Français](../fr/troubleshooting.md) | [Deutsch](../de/troubleshooting.md) |
+
+## Sección
+
+| Primeros pasos | Bases y samples | Comprobaciones y operaciones | Diagnóstico |
+| --- | --- | --- | --- |
+| [Primeros pasos](getting-started.md) | [Bases y samples](databases.md) | [Comprobaciones y operaciones](operations.md) | **Seleccionado** |
 
 Primero reúna diagnósticos y después corrija la causa concreta. Si aún
 hace falta reinicializar, cree un backup y use `reinit-... CONFIRM=1` solo

@@ -2,9 +2,17 @@
 
 [← Back to README](../README_en.md)
 
-[Русский](../ru/databases.md) | **English — Selected** | [Español](../es/databases.md) | [中文](../zh/databases.md) | [Français](../fr/databases.md) | [Deutsch](../de/databases.md)
+## Language
 
-**Pages in this language:** [Getting started](getting-started.md) · **Databases and samples** · [Validation and operations](operations.md) · [Troubleshooting](troubleshooting.md)
+| Русский | English | Español | 中文 | Français | Deutsch |
+| --- | --- | --- | --- | --- | --- |
+| [Русский](../ru/databases.md) | **Selected** | [Español](../es/databases.md) | [中文](../zh/databases.md) | [Français](../fr/databases.md) | [Deutsch](../de/databases.md) |
+
+## Section
+
+| Getting started | Databases and samples | Validation and operations | Troubleshooting |
+| --- | --- | --- | --- |
+| [Getting started](getting-started.md) | **Selected** | [Validation and operations](operations.md) | [Troubleshooting](troubleshooting.md) |
 
 <a id="section-demo"></a>
 ## Required `demo` databases
@@ -31,6 +39,8 @@ The default database names are enforced by `make check-env` through
 
 <a id="section-sample-preparation"></a>
 ## Sample preparation
+
+Preparation requires `curl` and `git`; MySQL samples additionally require `unzip` and `sha256sum`.
 
 The preparation commands download and verify pinned upstream files but do not
 start containers or import into an initialized database. Downloads are local,

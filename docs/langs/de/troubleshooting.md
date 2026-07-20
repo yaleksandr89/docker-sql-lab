@@ -2,9 +2,17 @@
 
 [← Zurück zur README](../README_de.md)
 
-[Русский](../ru/troubleshooting.md) | [English](../en/troubleshooting.md) | [Español](../es/troubleshooting.md) | [中文](../zh/troubleshooting.md) | [Français](../fr/troubleshooting.md) | **Deutsch — Ausgewählt**
+## Sprache
 
-**Seiten in dieser Sprache:** [Erste Schritte](getting-started.md) · [Datenbanken und Samples](databases.md) · [Prüfungen und Betrieb](operations.md) · **Diagnose und Fehlerbehebung**
+| Русский | English | Español | 中文 | Français | Deutsch |
+| --- | --- | --- | --- | --- | --- |
+| [Русский](../ru/troubleshooting.md) | [English](../en/troubleshooting.md) | [Español](../es/troubleshooting.md) | [中文](../zh/troubleshooting.md) | [Français](../fr/troubleshooting.md) | **Ausgewählt** |
+
+## Abschnitt
+
+| Erste Schritte | Datenbanken und Samples | Prüfungen und Betrieb | Diagnose und Fehlerbehebung |
+| --- | --- | --- | --- |
+| [Erste Schritte](getting-started.md) | [Datenbanken und Samples](databases.md) | [Prüfungen und Betrieb](operations.md) | **Ausgewählt** |
 
 Sammeln Sie zuerst Diagnosedaten und korrigieren Sie dann die konkrete
 Ursache. Falls eine Neuinitialisierung nötig bleibt, erstellen Sie ein Backup

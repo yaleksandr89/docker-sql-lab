@@ -2,12 +2,22 @@
 
 [← 返回 README](../README_zh.md)
 
-[Русский](../ru/operations.md) | [English](../en/operations.md) | [Español](../es/operations.md) | **中文 — 已选择** | [Français](../fr/operations.md) | [Deutsch](../de/operations.md)
+## 语言
 
-**本语言页面:** [入门](getting-started.md) · [数据库与 samples](databases.md) · **检查与运维** · [诊断与故障排除](troubleshooting.md)
+| Русский | English | Español | 中文 | Français | Deutsch |
+| --- | --- | --- | --- | --- | --- |
+| [Русский](../ru/operations.md) | [English](../en/operations.md) | [Español](../es/operations.md) | **已选择** | [Français](../fr/operations.md) | [Deutsch](../de/operations.md) |
+
+## 章节
+
+| 入门 | 数据库与 samples | 检查与运维 | 诊断与故障排除 |
+| --- | --- | --- | --- |
+| [入门](getting-started.md) | [数据库与 samples](databases.md) | **已选择** | [诊断与故障排除](troubleshooting.md) |
 
 <a id="section-make-targets"></a>
 ## 公共 Make targets
+
+公共 targets 及其实现位于 [`Makefile`](../../../Makefile)。
 
 关键 targets 包括 `make init`、`make up`、`make down`、
 `make check`、`make test-storage-paths`、`make test-sql-imports`、

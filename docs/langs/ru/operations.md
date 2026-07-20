@@ -2,12 +2,22 @@
 
 [← Вернуться к README](../../../README.md)
 
-**Русский — Выбран** | [English](../en/operations.md) | [Español](../es/operations.md) | [中文](../zh/operations.md) | [Français](../fr/operations.md) | [Deutsch](../de/operations.md)
+## Язык
 
-**Разделы этого языка:** [Начало работы](getting-started.md) · [Базы и samples](databases.md) · **Проверки и операции** · [Диагностика](troubleshooting.md)
+| Русский | English | Español | 中文 | Français | Deutsch |
+| --- | --- | --- | --- | --- | --- |
+| **Выбран** | [English](../en/operations.md) | [Español](../es/operations.md) | [中文](../zh/operations.md) | [Français](../fr/operations.md) | [Deutsch](../de/operations.md) |
+
+## Раздел
+
+| Начало работы | Базы и samples | Проверки и операции | Диагностика |
+| --- | --- | --- | --- |
+| [Начало работы](getting-started.md) | [Базы и samples](databases.md) | **Выбран** | [Диагностика](troubleshooting.md) |
 
 <a id="section-make-targets"></a>
 ## Команды Makefile
+
+Публичные targets и их фактическая реализация находятся в [`Makefile`](../../../Makefile).
 
 Ключевые targets: `make init`, `make up`, `make down`, `make check`,
 `make test-storage-paths`, `make test-sql-imports`, `make mysql-import` и

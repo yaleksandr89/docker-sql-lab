@@ -2,9 +2,17 @@
 
 [← 返回 README](../README_zh.md)
 
-[Русский](../ru/getting-started.md) | [English](../en/getting-started.md) | [Español](../es/getting-started.md) | **中文 — 已选择** | [Français](../fr/getting-started.md) | [Deutsch](../de/getting-started.md)
+## 语言
 
-**本语言页面:** **入门** · [数据库与 samples](databases.md) · [检查与运维](operations.md) · [诊断与故障排除](troubleshooting.md)
+| Русский | English | Español | 中文 | Français | Deutsch |
+| --- | --- | --- | --- | --- | --- |
+| [Русский](../ru/getting-started.md) | [English](../en/getting-started.md) | [Español](../es/getting-started.md) | **已选择** | [Français](../fr/getting-started.md) | [Deutsch](../de/getting-started.md) |
+
+## 章节
+
+| 入门 | 数据库与 samples | 检查与运维 | 诊断与故障排除 |
+| --- | --- | --- | --- |
+| **已选择** | [数据库与 samples](databases.md) | [检查与运维](operations.md) | [诊断与故障排除](troubleshooting.md) |
 
 <a id="section-requirements"></a>
 ## 要求
@@ -110,7 +118,7 @@ make postgres-user  # DB_USER，demo 数据库
 <a id="section-credentials"></a>
 ## 凭据
 
-`.docker.env` 从 `.docker.env.example` 创建，并被 Git 忽略。密码应保存在
+`.docker.env` 从 [`.docker.env.example`](../../../.docker.env.example) 创建，并被 Git 忽略。密码应保存在
 该文件中，不要硬编码进受版本控制的 Compose、SQL 或客户端配置。
 
 | 用途 | 用户设置 | 密码设置 |

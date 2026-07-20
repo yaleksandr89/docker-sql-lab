@@ -2,9 +2,17 @@
 
 [← Back to README](../README_en.md)
 
-[Русский](../ru/troubleshooting.md) | **English — Selected** | [Español](../es/troubleshooting.md) | [中文](../zh/troubleshooting.md) | [Français](../fr/troubleshooting.md) | [Deutsch](../de/troubleshooting.md)
+## Language
 
-**Pages in this language:** [Getting started](getting-started.md) · [Databases and samples](databases.md) · [Validation and operations](operations.md) · **Troubleshooting**
+| Русский | English | Español | 中文 | Français | Deutsch |
+| --- | --- | --- | --- | --- | --- |
+| [Русский](../ru/troubleshooting.md) | **Selected** | [Español](../es/troubleshooting.md) | [中文](../zh/troubleshooting.md) | [Français](../fr/troubleshooting.md) | [Deutsch](../de/troubleshooting.md) |
+
+## Section
+
+| Getting started | Databases and samples | Validation and operations | Troubleshooting |
+| --- | --- | --- | --- |
+| [Getting started](getting-started.md) | [Databases and samples](databases.md) | [Validation and operations](operations.md) | **Selected** |
 
 Collect diagnostics first, then correct the specific cause. If a
 reinitialization is still required, create a backup and use confirmed

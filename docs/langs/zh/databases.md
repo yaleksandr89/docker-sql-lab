@@ -2,9 +2,17 @@
 
 [← 返回 README](../README_zh.md)
 
-[Русский](../ru/databases.md) | [English](../en/databases.md) | [Español](../es/databases.md) | **中文 — 已选择** | [Français](../fr/databases.md) | [Deutsch](../de/databases.md)
+## 语言
 
-**本语言页面:** [入门](getting-started.md) · **数据库与 samples** · [检查与运维](operations.md) · [诊断与故障排除](troubleshooting.md)
+| Русский | English | Español | 中文 | Français | Deutsch |
+| --- | --- | --- | --- | --- | --- |
+| [Русский](../ru/databases.md) | [English](../en/databases.md) | [Español](../es/databases.md) | **已选择** | [Français](../fr/databases.md) | [Deutsch](../de/databases.md) |
+
+## 章节
+
+| 入门 | 数据库与 samples | 检查与运维 | 诊断与故障排除 |
+| --- | --- | --- | --- |
+| [入门](getting-started.md) | **已选择** | [检查与运维](operations.md) | [诊断与故障排除](troubleshooting.md) |
 
 <a id="section-demo"></a>
 ## 必需的 `demo` 数据库
@@ -28,6 +36,8 @@
 
 <a id="section-sample-preparation"></a>
 ## 准备 samples
+
+准备过程需要 `curl` 和 `git`；MySQL samples 还需要 `unzip` 与 `sha256sum`。
 
 准备命令会下载并校验固定的 upstream 文件，但不会启动容器，也不会向
 已初始化数据库导入数据。临时下载仅保存在本地，不提交到 Git，最终位于
