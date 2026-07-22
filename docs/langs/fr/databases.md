@@ -84,8 +84,9 @@ numériques du conteneur.
 > **Important :** Les entrypoints officiels MySQL et PostgreSQL n’exécutent
 > init que si le data directory est vide. Ajouter des fichiers après
 > l’initialisation ne modifie pas une base existante. `make down` conserve les
-> données, tandis qu’une réinitialisation confirmée supprime toutes les données
-> du SGBD choisi ; une sauvegarde préalable est obligatoire.
+> données, tandis qu’une réinitialisation confirmée supprime les données
+> actuelles du SGBD choisi et recrée les bases depuis les scripts init actuels.
+> Sauvegardez uniquement les données personnelles à conserver ; un lab ponctuel sans changement précieux ne l’exige pas.
 
 Pour une première initialisation avec samples, préparez-les avant le premier
 démarrage :
@@ -98,8 +99,8 @@ make samples-postgres
 make up-postgres
 ```
 
-Pour un SGBD déjà initialisé, créez une sauvegarde puis utilisez uniquement sa
-réinitialisation confirmée correspondante :
+Pour un SGBD déjà initialisé, conservez les données personnelles si nécessaire,
+puis utilisez uniquement sa réinitialisation confirmée correspondante :
 
 ```bash
 make samples-mysql

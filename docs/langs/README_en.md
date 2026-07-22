@@ -20,6 +20,16 @@ MySQL and PostgreSQL. Run either DBMS independently or both together. A compact
 Chinook datasets provide ready-to-query training data. Enable Adminer only
 when you need it.
 
+## Screencasts
+
+The recordings use PhpStorm. DataGrip, DBeaver, Adminer, or another
+MySQL/PostgreSQL client will work instead. The screencasts are recorded in Russian.
+
+| Scenario | Yandex Disk | Google Drive | What it shows |
+|---|---|---|---|
+| First start with required `demo`, then add training databases | [Watch](https://disk.yandex.ru/i/Kj4TcMSBuIDVeA "docker-sql-lab-demo-then-training-databases.mp4") | [Watch](https://drive.google.com/file/d/1HzYWbMuBEobXlbGQYNfHYVAq95TLqEPf/view?usp=sharing "docker-sql-lab-demo-then-training-databases.mp4") | Start MySQL and PostgreSQL with required `demo`; check them; prepare Sakila, Pagila, and Chinook; confirm reinitialization; check again and run SQL queries. |
+| First start with training databases prepared in advance | [Watch](https://disk.yandex.ru/i/nFgJZto8agbdWw "docker-sql-lab-training-databases-first-start.mp4") | [Watch](https://drive.google.com/file/d/1nKiGrJ4QINLCQcRk-k6vfTakpWsw-JS7/view?usp=sharing "docker-sql-lab-training-databases-first-start.mp4") | Prepare Sakila, Pagila, and Chinook before the first start; initialize required `demo` and the training databases together; check access and run SQL queries. |
+
 ## Stack
 
 - MySQL 9.7.1 LTS
@@ -55,7 +65,7 @@ operations.
 
 ## Requirements
 
-1. Docker Engine or Docker Desktop with `docker compose` v2.
+1. Docker Engine or Docker Desktop with Docker Compose v2.
 2. GNU Make, Bash, and the basic Unix CLI utilities used by the scripts.
 
 Recommended environments: Linux; macOS with Docker Desktop; Windows with
@@ -98,12 +108,13 @@ make up
 
 Prepare samples before the first initialization; the official entrypoints load them alongside `demo`.
 
-> **Warning:** if a data directory was initialized without samples, adding them requires a backup and an explicitly confirmed destructive reinitialization.
+> **Warning:** reinitialization deletes the selected DBMS data. Back up only
+> custom data you need to keep; a one-off lab with no valuable changes needs no backup.
 
 <details>
 <summary>📦 The lab has run before: add or reuse samples</summary>
 
-**Initialized without samples.** A regular `make up` does not apply new init/sample files. Back up important data, then use the appropriate option:
+**Initialized without samples.** A regular `make up` does not apply new init/sample files. If you need to preserve important data, back it up, then use the appropriate option:
 
 - MySQL: `make samples-mysql`, then `make reinit-mysql CONFIRM=1`.
 - PostgreSQL: `make samples-postgres`, then `make reinit-postgres CONFIRM=1`.

@@ -17,7 +17,7 @@
 <a id="section-requirements"></a>
 ## Voraussetzungen
 
-- Docker Engine oder Docker Desktop mit dem Befehl `docker compose` v2.
+- Docker Engine oder Docker Desktop mit Docker Compose v2.
 - GNU Make, Bash und grundlegende Unix-Kommandozeilenwerkzeuge.
 - Empfohlene Umgebungen: Linux; macOS mit Docker Desktop; oder Windows mit
   Docker Desktop und WSL2.
@@ -46,7 +46,7 @@ Mit `make up-no-ui` starten Sie beide DBMS ohne Adminer. Die obligatorische
 Beispieldatensätze sind optional. Um sie bei der ersten Initialisierung zu
 laden, bereiten Sie sie vor dem ersten `make up` vor. Bei bereits
 initialisierten Datenverzeichnissen erstellen Sie ein Backup vor einer
-bestätigten Neuinitialisierung, die Daten löscht. Das genaue Verfahren steht
+bestätigten Neuinitialisierung nur, wenn eigene Daten erhalten bleiben sollen. Das genaue Verfahren steht
 unter [Initialisierung und Lebenszyklus](databases.md#section-initialization).
 
 ```bash

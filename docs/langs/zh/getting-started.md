@@ -17,7 +17,7 @@
 <a id="section-requirements"></a>
 ## 要求
 
-- Docker Engine 或 Docker Desktop，并支持 `docker compose` v2 命令。
+- Docker Engine 或 Docker Desktop，并使用 Docker Compose v2。
 - GNU Make、Bash 和基本 Unix 命令行工具。
 - 推荐环境：Linux；使用 Docker Desktop 的 macOS；或使用 Docker Desktop
   与 WSL2 的 Windows。
@@ -41,7 +41,7 @@ make up
 使用 `make up-no-ui` 可启动两种数据库而不启动 Adminer。首次初始化时
 始终创建必需的 `demo` 数据库；示例数据集是可选的。如需在首次初始化时
 加载它们，请在第一次 `make up` 前完成准备。对于已经初始化的数据目录，
-请先备份，再执行会删除数据且经过确认的重新初始化。准确步骤见
+仅在需要保留自己的数据时才在确认重新初始化前备份。准确步骤见
 [初始化生命周期](databases.md#section-initialization)。
 
 ```bash

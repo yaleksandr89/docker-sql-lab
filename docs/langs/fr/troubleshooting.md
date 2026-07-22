@@ -15,8 +15,8 @@
 | [Prise en main](getting-started.md) | [Bases et samples](databases.md) | [Contrôles et opérations](operations.md) | **Sélectionné** |
 
 Collectez d’abord le diagnostic, puis corrigez la cause précise. Si une
-réinitialisation reste nécessaire, effectuez un backup et n’utilisez
-`reinit-... CONFIRM=1` qu’en dernier recours volontaire.
+réinitialisation reste nécessaire, sauvegardez seulement les données
+personnelles à conserver et n’utilisez `reinit-... CONFIRM=1` qu’en dernier recours volontaire.
 
 Détails canoniques du cycle de vie et des opérations : [bases](databases.md#section-initialization) · [opérations](operations.md#section-clean-reinitialize).
 
@@ -41,9 +41,9 @@ Vérifiez Docker, le port, `.docker.env` et les logs avant de toucher aux donné
 <a id="section-init-samples"></a>
 ## Les changements init ou les samples n’apparaissent pas
 
-C’est normal si data est déjà initialisé. Vérifiez chemins et préparation,
-sauvegardez les données importantes et n’utilisez `reinit-... CONFIRM=1` qu’en
-dernier recours volontaire.
+C’est normal si data est déjà initialisé. Vérifiez chemins et préparation ; si
+des données importantes doivent être conservées, sauvegardez-les et n’utilisez
+`reinit-... CONFIRM=1` qu’en dernier recours volontaire.
 
 <a id="section-sample-integrity"></a>
 ## Sample incomplet ou propriétaire inattendu

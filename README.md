@@ -20,6 +20,16 @@ PostgreSQL. Каждую СУБД можно запускать отдельно
 и Chinook дают готовые данные для упражнений. Adminer подключается только при
 необходимости.
 
+## Скринкасты
+
+В записях используется PhpStorm. Вместо него подойдут DataGrip, DBeaver,
+Adminer или другой клиент MySQL/PostgreSQL.
+
+| Сценарий | Яндекс.Диск | Google Drive | Что показано |
+|---|---|---|---|
+| Первый запуск с обязательной `demo`, затем добавление учебных баз | [Смотреть](https://disk.yandex.ru/i/Kj4TcMSBuIDVeA "docker-sql-lab-demo-then-training-databases.mp4") | [Смотреть](https://drive.google.com/file/d/1HzYWbMuBEobXlbGQYNfHYVAq95TLqEPf/view?usp=sharing "docker-sql-lab-demo-then-training-databases.mp4") | Запуск MySQL и PostgreSQL с обязательной `demo`; проверка; подготовка Sakila, Pagila и Chinook; подтверждённая переинициализация; повторная проверка и SQL-запросы. |
+| Первый запуск с заранее подготовленными учебными базами | [Смотреть](https://disk.yandex.ru/i/nFgJZto8agbdWw "docker-sql-lab-training-databases-first-start.mp4") | [Смотреть](https://drive.google.com/file/d/1nKiGrJ4QINLCQcRk-k6vfTakpWsw-JS7/view?usp=sharing "docker-sql-lab-training-databases-first-start.mp4") | Подготовка Sakila, Pagila и Chinook до первого запуска; единая инициализация обязательной `demo` и учебных баз; проверка доступа и SQL-запросы. |
+
 ## Стек
 
 - MySQL 9.7.1 LTS
@@ -57,7 +67,7 @@ PostgreSQL. Каждую СУБД можно запускать отдельно
 
 ## Требования
 
-1. Docker Engine или Docker Desktop с `docker compose` v2.
+1. Docker Engine или Docker Desktop с Docker Compose v2.
 2. GNU Make, Bash и базовые утилиты командной строки Unix, используемые
    сценариями.
 
@@ -102,9 +112,9 @@ make up
 Учебные базы подготавливаются до первой инициализации; официальные точки входа
 загрузят их вместе с `demo`.
 
-> **Внимание:** если каталог данных уже инициализирован без учебных баз, для
-> их добавления требуется резервная копия и подтверждённая переинициализация,
-> удаляющая данные.
+> **Внимание:** переинициализация удаляет данные выбранной СУБД. Резервная
+> копия нужна, только если требуется сохранить собственные данные; для
+> одноразового учебного стенда без ценных изменений она не обязательна.
 
 <details>
 <summary>📦 Стенд уже запускался: добавить или повторно использовать учебные базы</summary>

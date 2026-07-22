@@ -20,6 +20,16 @@ La base compacta `demo` se crea automáticamente; los datasets opcionales
 Sakila, Pagila y Chinook ofrecen datos listos para consultar. Active Adminer
 solo cuando lo necesite.
 
+## Videotutoriales
+
+Las grabaciones usan PhpStorm; también sirven DataGrip, DBeaver, Adminer u otro
+cliente MySQL/PostgreSQL. Los screencasts están grabados en ruso.
+
+| Escenario | Yandex Disk | Google Drive | Qué muestra |
+|---|---|---|---|
+| Primer inicio con `demo` obligatoria y posterior adición de bases didácticas | [Ver](https://disk.yandex.ru/i/Kj4TcMSBuIDVeA "docker-sql-lab-demo-then-training-databases.mp4") | [Ver](https://drive.google.com/file/d/1HzYWbMuBEobXlbGQYNfHYVAq95TLqEPf/view?usp=sharing "docker-sql-lab-demo-then-training-databases.mp4") | Inicia MySQL y PostgreSQL con `demo` obligatoria; comprueba; prepara Sakila, Pagila y Chinook; confirma la reinicialización; vuelve a comprobar y ejecuta consultas SQL. |
+| Primer inicio con las bases didácticas preparadas de antemano | [Ver](https://disk.yandex.ru/i/nFgJZto8agbdWw "docker-sql-lab-training-databases-first-start.mp4") | [Ver](https://drive.google.com/file/d/1nKiGrJ4QINLCQcRk-k6vfTakpWsw-JS7/view?usp=sharing "docker-sql-lab-training-databases-first-start.mp4") | Prepara Sakila, Pagila y Chinook antes del primer inicio; inicializa juntas `demo` obligatoria y las bases didácticas; comprueba el acceso y ejecuta consultas SQL. |
+
 ## Stack
 
 - MySQL 9.7.1 LTS
@@ -54,7 +64,7 @@ backups y operación.
 
 ## Requisitos
 
-1. Docker Engine o Docker Desktop con `docker compose` v2.
+1. Docker Engine o Docker Desktop con Docker Compose v2.
 2. GNU Make, Bash y las utilidades Unix CLI básicas usadas por los scripts.
 
 Entornos recomendados: Linux; macOS con Docker Desktop; Windows con Docker
@@ -95,12 +105,13 @@ make up
 
 Prepare los samples antes de la primera inicialización; los entrypoints los cargarán junto con `demo`.
 
-> **Advertencia:** si un directorio ya se inicializó sin samples, añadirlos exige un backup y una reinicialización destructiva confirmada explícitamente.
+> **Advertencia:** la reinicialización elimina los datos del SGBD elegido. Haga
+> backup solo de los datos propios que quiera conservar; un laboratorio puntual sin cambios valiosos no lo necesita.
 
 <details>
 <summary>📦 El laboratorio ya se inició: añadir o reutilizar samples</summary>
 
-**Inicializado sin samples.** `make up` no aplica nuevos archivos init/sample. Haga backup de los datos importantes y use la opción adecuada:
+**Inicializado sin samples.** `make up` no aplica nuevos archivos init/sample. Si necesita conservar datos importantes, haga backup y use la opción adecuada:
 
 - MySQL: `make samples-mysql` y después `make reinit-mysql CONFIRM=1`.
 - PostgreSQL: `make samples-postgres` y después `make reinit-postgres CONFIRM=1`.

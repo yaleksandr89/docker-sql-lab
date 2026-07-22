@@ -93,8 +93,9 @@ use numeric UID/GID values that differ from the host user.
 > **Important:** Official MySQL and PostgreSQL entrypoints run init files only
 > for an empty data directory. Adding files after initialization does not
 > change an existing database. `make down` preserves data, while confirmed
-> reinitialization deletes all data for the selected DBMS; a backup is required
-> beforehand.
+> reinitialization deletes the selected DBMS's current data and recreates its
+> databases from the current init scripts. Back up custom data only when you
+> need to preserve it; a one-off lab with no valuable changes needs no backup.
 
 For first initialization with sample datasets, prepare them before the first
 start:
@@ -107,8 +108,8 @@ make samples-postgres
 make up-postgres
 ```
 
-For an initialized DBMS, create a backup and then use only its matching
-confirmed reinitialization:
+For an initialized DBMS, preserve custom data if needed and then use only its
+matching confirmed reinitialization:
 
 ```bash
 make samples-mysql

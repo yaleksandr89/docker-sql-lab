@@ -153,6 +153,6 @@ make reinit-all CONFIRM=1
 
 单数据库命令只删除对应 data 目录；`all` 会删除两种数据库的数据。配置、
 init、samples 和 backups 会保留。reinit 随后启动并检查所选数据库；
-`reinit-all` 启动两者但不启用 Adminer。
+`reinit-all` 会启动 MySQL、PostgreSQL 和 Adminer，然后执行共享访问检查。
 
 [返回 README](../README_zh.md)

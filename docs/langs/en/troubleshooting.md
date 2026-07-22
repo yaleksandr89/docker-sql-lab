@@ -15,8 +15,8 @@
 | [Getting started](getting-started.md) | [Databases and samples](databases.md) | [Validation and operations](operations.md) | **Selected** |
 
 Collect diagnostics first, then correct the specific cause. If a
-reinitialization is still required, create a backup and use confirmed
-`reinit-... CONFIRM=1` only as a deliberate last resort.
+reinitialization is still required, back up custom data only when you need to
+keep it and use confirmed `reinit-... CONFIRM=1` only as a deliberate last resort.
 
 Canonical lifecycle and operational details: [databases](databases.md#section-initialization) · [operations](operations.md#section-clean-reinitialize).
 

@@ -17,7 +17,7 @@
 <a id="section-requirements"></a>
 ## Requisitos
 
-- Docker Engine o Docker Desktop con el comando `docker compose` v2.
+- Docker Engine o Docker Desktop con Docker Compose v2.
 - GNU Make, Bash y utilidades básicas de línea de comandos Unix.
 - Entornos recomendados: Linux; macOS con Docker Desktop; o Windows con
   Docker Desktop y WSL2.
@@ -44,9 +44,9 @@ Adminer está en `http://127.0.0.1:8081`.
 Use `make up-no-ui` para iniciar ambos SGBD sin Adminer. La base obligatoria
 `demo` siempre se crea durante la primera inicialización; los datasets de
 ejemplo son opcionales. Para incluirlos en la primera inicialización,
-prepárelos antes del primer `make up`. Si los directorios de datos ya están
-inicializados, cree un backup antes de una reinicialización confirmada que
-borra datos. Consulte el procedimiento exacto en
+prepárelos antes del primer `make up`. Si necesita conservar datos propios de
+directorios ya inicializados, cree un backup antes de la reinicialización
+confirmada. Consulte el procedimiento exacto en
 [Inicialización y ciclo de vida](databases.md#section-initialization).
 
 ```bash

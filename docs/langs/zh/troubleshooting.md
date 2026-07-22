@@ -14,8 +14,8 @@
 | --- | --- | --- | --- |
 | [入门](getting-started.md) | [数据库与 samples](databases.md) | [检查与运维](operations.md) | **已选择** |
 
-先收集诊断信息，再针对原因修正。若仍需重新初始化，请先做
-backup，并仅将确认后的 `reinit-... CONFIRM=1` 作为有意的最后手段。
+先收集诊断信息，再针对原因修正。若仍需重新初始化，仅在需要保留自己的
+数据时才备份，并仅将确认后的 `reinit-... CONFIRM=1` 作为有意的最后手段。
 
 生命周期与运维的规范说明：[数据库](databases.md#section-initialization) · [运维](operations.md#section-clean-reinitialize)。
 
@@ -40,8 +40,8 @@ make log SERVICE=postgres
 <a id="section-init-samples"></a>
 ## init 修改或 samples 未出现
 
-如果 data 已初始化，这是预期行为。检查路径与准备命令，备份重要数据，
-仅在明确需要时最后使用 `reinit-... CONFIRM=1`。
+如果 data 已初始化，这是预期行为。检查路径与准备命令；若需保留重要数据，
+请备份，并仅在明确需要时最后使用 `reinit-... CONFIRM=1`。
 
 <a id="section-sample-integrity"></a>
 ## sample 不完整或所有者异常

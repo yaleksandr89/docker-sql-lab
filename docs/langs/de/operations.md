@@ -157,7 +157,7 @@ make reinit-all CONFIRM=1
 
 Einzelne Targets löschen nur das gewählte DBMS-data directory; `all` löscht
 beide. Konfiguration, init, Samples und Backups bleiben erhalten. Reinit
-startet und prüft anschließend die gewählten DBMS; `reinit-all` startet beide
-ohne Adminer.
+startet und prüft anschließend die gewählten DBMS; `reinit-all` startet MySQL,
+PostgreSQL und Adminer und führt anschließend die gemeinsame Zugriffsprüfung aus.
 
 [Zurück zur README](../README_de.md)

@@ -178,6 +178,7 @@ make reinit-all CONFIRM=1
 The single-DBMS commands delete only that DBMS data directory. The `all`
 variants delete both database data directories. Configuration, init files,
 optional sample downloads, and backups are preserved. Reinitialization then
-starts and checks the selected DBMSs; `reinit-all` starts both without Adminer.
+starts and checks the selected DBMSs; `reinit-all` starts MySQL, PostgreSQL,
+and Adminer, then performs the shared access check.
 
 [Back to README](../README_en.md)

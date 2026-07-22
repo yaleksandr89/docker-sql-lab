@@ -20,6 +20,16 @@ gemeinsam starten. Die kompakte `demo`-Datenbank entsteht automatisch;
 optionale Sakila-, Pagila- und Chinook-Datensätze liefern sofort abfragbare
 Übungsdaten. Adminer wird nur bei Bedarf aktiviert.
 
+## Bildschirmaufzeichnungen
+
+Die Aufzeichnungen verwenden PhpStorm; DataGrip, DBeaver, Adminer oder ein
+anderer MySQL-/PostgreSQL-Client eignen sich ebenfalls. Sie wurden auf Russisch aufgenommen.
+
+| Szenario | Yandex Disk | Google Drive | Gezeigt wird |
+|---|---|---|---|
+| Erster Start mit obligatorischem `demo`, danach Übungsdatenbanken hinzufügen | [Ansehen](https://disk.yandex.ru/i/Kj4TcMSBuIDVeA "docker-sql-lab-demo-then-training-databases.mp4") | [Ansehen](https://drive.google.com/file/d/1HzYWbMuBEobXlbGQYNfHYVAq95TLqEPf/view?usp=sharing "docker-sql-lab-demo-then-training-databases.mp4") | Startet MySQL und PostgreSQL mit obligatorischem `demo`; prüft; bereitet Sakila, Pagila und Chinook vor; bestätigt die Neuinitialisierung; prüft erneut und führt SQL-Abfragen aus. |
+| Erster Start mit vorab vorbereiteten Übungsdatenbanken | [Ansehen](https://disk.yandex.ru/i/nFgJZto8agbdWw "docker-sql-lab-training-databases-first-start.mp4") | [Ansehen](https://drive.google.com/file/d/1nKiGrJ4QINLCQcRk-k6vfTakpWsw-JS7/view?usp=sharing "docker-sql-lab-training-databases-first-start.mp4") | Bereitet Sakila, Pagila und Chinook vor dem ersten Start vor; initialisiert obligatorisches `demo` und Übungsdatenbanken zusammen; prüft Zugriff und führt SQL-Abfragen aus. |
+
 ## Stack und festgelegte Versionen
 
 - MySQL 9.7.1 LTS
@@ -54,7 +64,7 @@ Betrieb nötig.
 
 ## Voraussetzungen
 
-1. Docker Engine oder Docker Desktop mit `docker compose` v2.
+1. Docker Engine oder Docker Desktop mit Docker Compose v2.
 2. GNU Make, Bash und die von den Skripten verwendeten Unix-CLI-Basiswerkzeuge.
 
 Empfohlen: Linux; macOS mit Docker Desktop; Windows mit Docker Desktop und
@@ -96,12 +106,13 @@ make up
 
 Bereiten Sie Samples vor der ersten Initialisierung vor; die Entrypoints laden sie zusammen mit `demo`.
 
-> **Warnung:** Wurde ein Datenverzeichnis ohne Samples initialisiert, erfordert das Hinzufügen ein Backup und eine ausdrücklich bestätigte destructive Neuinitialisierung.
+> **Warnung:** Die Neuinitialisierung löscht die Daten des gewählten DBMS.
+> Sichern Sie nur eigene Daten, die erhalten bleiben sollen; ein einmaliges Lab ohne wertvolle Änderungen braucht kein Backup.
 
 <details>
 <summary>📦 Das Lab lief bereits: Samples hinzufügen oder erneut verwenden</summary>
 
-**Ohne Samples initialisiert.** `make up` wendet neue Init-/Sample-Dateien nicht an. Sichern Sie wichtige Daten und wählen Sie dann die passende Variante:
+**Ohne Samples initialisiert.** `make up` wendet neue Init-/Sample-Dateien nicht an. Wenn wichtige Daten erhalten bleiben sollen, sichern Sie sie und wählen dann die passende Variante:
 
 - MySQL: `make samples-mysql`, danach `make reinit-mysql CONFIRM=1`.
 - PostgreSQL: `make samples-postgres`, danach `make reinit-postgres CONFIRM=1`.

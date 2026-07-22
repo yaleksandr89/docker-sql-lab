@@ -85,8 +85,10 @@ gehören.
 > **Wichtig:** Offizielle MySQL- und PostgreSQL-Entrypoints führen init-Dateien
 > nur bei leerem data directory aus. Nach der Initialisierung hinzugefügte
 > Dateien ändern keine bestehende Datenbank. `make down` erhält die Daten; eine
-> bestätigte Neuinitialisierung löscht dagegen alle Daten des gewählten DBMS.
-> Zuvor ist ein Backup erforderlich.
+> bestätigte Neuinitialisierung löscht dagegen die aktuellen Daten des gewählten
+> DBMS und erstellt die Datenbanken aus den aktuellen Init-Skripten neu. Ein
+> Backup ist nur nötig, wenn eigene Daten erhalten bleiben sollen; ein einmaliges
+> Lab ohne wertvolle Änderungen braucht keines.
 
 Bereiten Sie Samples für die erste Initialisierung vor dem ersten Start vor:
 
@@ -98,8 +100,8 @@ make samples-postgres
 make up-postgres
 ```
 
-Erstellen Sie bei einem initialisierten DBMS ein Backup und verwenden Sie dann
-nur die passende bestätigte Neuinitialisierung:
+Sichern Sie bei einem initialisierten DBMS eigene Daten bei Bedarf und verwenden
+Sie dann nur die passende bestätigte Neuinitialisierung:
 
 ```bash
 make samples-mysql

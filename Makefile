@@ -611,5 +611,5 @@ reinit-postgres: clean-postgres
 	@$(MAKE) --no-print-directory check-postgres-access
 
 reinit-all: clean-all
-	@$(MAKE) --no-print-directory up-no-ui
+	@$(MAKE) --no-print-directory up
 	@$(MAKE) --no-print-directory check

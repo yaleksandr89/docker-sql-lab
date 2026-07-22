@@ -17,7 +17,7 @@
 <a id="section-requirements"></a>
 ## Requirements
 
-- Docker Engine or Docker Desktop with the `docker compose` v2 command.
+- Docker Engine or Docker Desktop with Docker Compose v2.
 - GNU Make, Bash, and basic Unix CLI utilities.
 - Recommended environments: Linux; macOS with Docker Desktop; or Windows with
   Docker Desktop and WSL2.
@@ -43,8 +43,8 @@ open Adminer at `http://127.0.0.1:8081`.
 Use `make up-no-ui` to start both DBMSs without Adminer. The required `demo`
 database is always created during first initialization; sample datasets are
 optional. To include them in the first initialization, prepare them before the
-first `make up`. For initialized data directories, create a backup before a
-confirmed reinitialization that deletes data. See
+first `make up`. For initialized data directories, create a backup before
+confirmed reinitialization only when you need to preserve custom data. See
 [Initialization lifecycle](databases.md#section-initialization) for the exact
 procedure.
 

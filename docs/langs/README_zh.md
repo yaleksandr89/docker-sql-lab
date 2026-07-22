@@ -19,6 +19,16 @@
 数据库会自动创建；可选的 Sakila、Pagila 和 Chinook 数据集提供开箱即用
 的查询练习数据。仅在需要时启用 Adminer。
 
+## 录屏演示
+
+录屏使用 PhpStorm；也可使用 DataGrip、DBeaver、Adminer 或其他
+MySQL/PostgreSQL 客户端。录屏以俄语录制。
+
+| 场景 | Yandex Disk | Google Drive | 演示内容 |
+|---|---|---|---|
+| 首次启动必需的 `demo`，随后添加练习数据库 | [观看](https://disk.yandex.ru/i/Kj4TcMSBuIDVeA "docker-sql-lab-demo-then-training-databases.mp4") | [观看](https://drive.google.com/file/d/1HzYWbMuBEobXlbGQYNfHYVAq95TLqEPf/view?usp=sharing "docker-sql-lab-demo-then-training-databases.mp4") | 使用必需的 `demo` 启动 MySQL 和 PostgreSQL；检查；准备 Sakila、Pagila 和 Chinook；确认重新初始化；再次检查并执行 SQL 查询。 |
+| 首次启动前已准备好练习数据库 | [观看](https://disk.yandex.ru/i/nFgJZto8agbdWw "docker-sql-lab-training-databases-first-start.mp4") | [观看](https://drive.google.com/file/d/1nKiGrJ4QINLCQcRk-k6vfTakpWsw-JS7/view?usp=sharing "docker-sql-lab-training-databases-first-start.mp4") | 在首次启动前准备 Sakila、Pagila 和 Chinook；一起初始化必需的 `demo` 和练习数据库；检查访问并执行 SQL 查询。 |
+
 ## 技术栈与固定版本
 
 - MySQL 9.7.1 LTS
@@ -52,7 +62,7 @@ credentials、网络暴露、存储、备份与运维方案。
 
 ## 要求
 
-1. Docker Engine 或带有 `docker compose` v2 的 Docker Desktop。
+1. Docker Engine 或带有 Docker Compose v2 的 Docker Desktop。
 2. GNU Make、Bash 以及脚本使用的基础 Unix CLI 工具。
 
 推荐环境：Linux；装有 Docker Desktop 的 macOS；Docker Desktop +
@@ -92,12 +102,13 @@ make up
 
 请在首次初始化前准备 samples；官方 entrypoints 会将它们与 `demo` 一起载入。
 
-> **警告：** 如果 data 目录已在没有 samples 时初始化，添加 samples 需要先做 backup，并明确确认 destructive reinit。
+> **警告：** 重新初始化会删除所选数据库的数据。只有需要保留自己的数据时
+> 才需备份；没有重要改动的一次性学习环境不要求备份。
 
 <details>
 <summary>📦 环境已启动过：添加或继续使用 samples</summary>
 
-**已在没有 samples 时初始化。** 普通的 `make up` 不会应用新增的 init/sample 文件。请先备份重要数据，再选择对应方式：
+**已在没有 samples 时初始化。** 普通的 `make up` 不会应用新增的 init/sample 文件。若需保留重要数据，请先备份，再选择对应方式：
 
 - MySQL：`make samples-mysql`，然后 `make reinit-mysql CONFIRM=1`。
 - PostgreSQL：`make samples-postgres`，然后 `make reinit-postgres CONFIRM=1`。

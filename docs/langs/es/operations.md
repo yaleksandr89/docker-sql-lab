@@ -156,6 +156,7 @@ make reinit-all CONFIRM=1
 Los targets individuales borran solo los datos del SGBD elegido; los de tipo
 `all` borran ambos. Conservan configuración, init, samples y backups. La
 reinicialización vuelve a iniciar y comprobar los SGBD seleccionados;
-`reinit-all` inicia ambos sin Adminer.
+`reinit-all` inicia MySQL, PostgreSQL y Adminer, y después realiza la
+comprobación común de acceso.
 
 [Volver al README](../README_es.md)

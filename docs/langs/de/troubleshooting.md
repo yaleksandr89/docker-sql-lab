@@ -15,8 +15,8 @@
 | [Erste Schritte](getting-started.md) | [Datenbanken und Samples](databases.md) | [Prüfungen und Betrieb](operations.md) | **Ausgewählt** |
 
 Sammeln Sie zuerst Diagnosedaten und korrigieren Sie dann die konkrete
-Ursache. Falls eine Neuinitialisierung nötig bleibt, erstellen Sie ein Backup
-und verwenden `reinit-... CONFIRM=1` nur als bewussten letzten Schritt.
+Ursache. Falls eine Neuinitialisierung nötig bleibt, sichern Sie eigene Daten
+nur, wenn sie erhalten bleiben sollen, und verwenden `reinit-... CONFIRM=1` nur als bewussten letzten Schritt.
 
 Verbindliche Details zu Lebenszyklus und Betrieb: [Datenbanken](databases.md#section-initialization) · [Betrieb](operations.md#section-clean-reinitialize).
 
@@ -43,8 +43,8 @@ Prüfen Sie Docker, Port, `.docker.env` und Logs, bevor Sie Daten ändern.
 ## Init-Änderungen oder Samples erscheinen nicht
 
 Bei bereits initialisierten Daten ist das erwartet. Prüfen Sie Pfade und
-Vorbereitung, sichern Sie wichtige Daten und verwenden Sie
-`reinit-... CONFIRM=1` nur als bewussten letzten Schritt.
+Vorbereitung; wenn wichtige Daten erhalten bleiben sollen, sichern Sie sie und
+verwenden `reinit-... CONFIRM=1` nur als bewussten letzten Schritt.
 
 <a id="section-sample-integrity"></a>
 ## Sample ist unvollständig oder hat einen unerwarteten Besitzer

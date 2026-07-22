@@ -156,6 +156,7 @@ make reinit-all CONFIRM=1
 Les commandes unitaires ne suppriment que les données du SGBD choisi ; `all`
 supprime celles des deux. Configuration, init, samples et backups restent en
 place. La réinitialisation redémarre et contrôle les SGBD choisis ;
-`reinit-all` démarre les deux sans Adminer.
+`reinit-all` démarre MySQL, PostgreSQL et Adminer, puis effectue le contrôle
+d’accès commun.
 
 [Retour au README](../README_fr.md)
