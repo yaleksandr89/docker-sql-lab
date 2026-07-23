@@ -9,9 +9,9 @@ SHELL := bash
 .PHONY: help init check-env pull config up up-no-ui up-mysql up-mysql-ui \
         up-postgres up-postgres-ui up-ui down-ui wait-mysql wait-postgres \
         down status logs log in mysql mysql-user postgres postgres-user sh \
-        samples-mysql samples-postgres mysql-grants mysql-import check check-mysql-access \
+        samples-mysql samples-postgres mysql-grants mysql-import postgres-import check check-mysql-access \
         check-postgres-access dump restore clean-mysql clean-postgres clean-all \
-        reinit-mysql reinit-postgres reinit-all
+        reinit-mysql reinit-postgres reinit-all test-storage-paths test-sql-imports
 
 PROJECT_DIR := $(CURDIR)
 ENV_FILE_EXAMPLE := .docker.env.example
@@ -20,7 +20,6 @@ HOST_UID := $(shell id -u)
 HOST_GID := $(shell id -g)
 
 REQUIRED_ENV_VARS := COMPOSE_PROJECT_NAME MYSQL_VERSION POSTGRES_VERSION ADMINER_VERSION \
-                     MYSQL_CONTAINER POSTGRES_CONTAINER ADMINER_CONTAINER \
                      MYSQL_PORT POSTGRES_PORT ADMINER_PORT \
                      MYSQL_DATA_DIR POSTGRES_DATA_DIR MYSQL_CONF_FILE \
                      MYSQL_INITDB_DIR POSTGRES_INITDB_DIR MYSQL_SAMPLES_DIR POSTGRES_SAMPLES_DIR \
@@ -33,9 +32,14 @@ COMPOSE_UI = $(COMPOSE) --profile ui
 
 MYSQL_SAMPLES_TMP_DIR := .tmp/mysql-samples
 SAKILA_URL := https://downloads.mysql.com/docs/sakila-db.zip
+SAKILA_SHA256 := c2ecb3dec28d752241ccfca02974ba970de3c3fc5d98887fd3f9d5843f946672
 POSTGRES_SAMPLES_TMP_DIR := .tmp/postgres-samples
 PAGILA_REF := 5ba5a57aeb159f75f02aca2432d3c262186d13d3
 PAGILA_BASE_URL := https://raw.githubusercontent.com/devrimgunduz/pagila/$(PAGILA_REF)
+PAGILA_LICENSE_URL := $(PAGILA_BASE_URL)/LICENSE.txt
+PAGILA_LICENSE_BLOB := c6078c708c6f55b56e24f3687c591ca12df567ca
+PAGILA_SCHEMA_BLOB := 23718a3adef90ced002e19ad4e1ac98d22aa5870
+PAGILA_DATA_BLOB := b7c016861fd0f84008645153c6a1d9e5a99b9cc6
 CHINOOK_REF := 4a944a942426e1f3263fe539155fb7ef92b04b4a
 CHINOOK_BASE_URL := https://raw.githubusercontent.com/lerocha/chinook-database/$(CHINOOK_REF)
 CHINOOK_LICENSE_URL := $(CHINOOK_BASE_URL)/LICENSE.md
@@ -73,6 +77,10 @@ help:
 	@echo "  make check                        проверить Compose и доступ DB_USER к обеим СУБД"
 	@echo "  make samples-mysql                скачать optional samples Chinook и Sakila"
 	@echo "  make samples-postgres             скачать optional samples Pagila и Chinook"
+	@echo "  make test-storage-paths           проверить защиту managed storage paths"
+	@echo "  make test-sql-imports             проверить trusted SQL imports в запущенных СУБД"
+	@echo "  make mysql-import FILE=... DATABASE=...   импортировать доверенный text SQL в MySQL"
+	@echo "  make postgres-import FILE=... DATABASE=... импортировать доверенный text SQL в PostgreSQL"
 	@echo "  make clean-{mysql,postgres,all} CONFIRM=1"
 	@echo "  make reinit-{mysql,postgres,all} CONFIRM=1"
 
@@ -98,10 +106,18 @@ check-env: $(ENV_FILE)
 		echo "ERROR: обязательные MYSQL_DATABASE и POSTGRES_DATABASE должны называться demo" >&2; \
 		exit 1; \
 	fi; \
-	if [[ "$$(realpath -m "$${MYSQL_DATA_DIR}")" == "$$(realpath -m "$${POSTGRES_DATA_DIR}")" ]]; then \
-		echo "ERROR: MYSQL_DATA_DIR и POSTGRES_DATA_DIR должны быть разными каталогами" >&2; \
-		exit 1; \
-	fi
+	"$(PROJECT_DIR)/scripts/validate-storage-paths.sh" \
+		--project-dir "$(PROJECT_DIR)" \
+		--mysql-data "$${MYSQL_DATA_DIR}" \
+		--postgres-data "$${POSTGRES_DATA_DIR}" \
+		--mysql-samples "$${MYSQL_SAMPLES_DIR}" \
+		--postgres-samples "$${POSTGRES_SAMPLES_DIR}"
+
+test-storage-paths:
+	@./scripts/test-storage-paths.sh
+
+test-sql-imports:
+	@./scripts/test-sql-imports.sh
 
 init: check-env
 	@echo "Проверяем каталоги, конфигурацию и init-скрипты..."
@@ -255,6 +271,7 @@ samples-mysql: check-env
 	@command -v curl >/dev/null || { echo "ERROR: требуется curl" >&2; exit 1; }
 	@command -v unzip >/dev/null || { echo "ERROR: требуется unzip" >&2; exit 1; }
 	@command -v git >/dev/null || { echo "ERROR: требуется git для проверки Git blob SHA" >&2; exit 1; }
+	@command -v sha256sum >/dev/null || { echo "ERROR: требуется sha256sum" >&2; exit 1; }
 	@set -Eeuo pipefail; $(LOAD_ENV) \
 	tmp_root="$(MYSQL_SAMPLES_TMP_DIR)"; \
 	download_dir="$${tmp_root}/download"; \
@@ -291,6 +308,7 @@ samples-mysql: check-env
 		"$(CHINOOK_MYSQL_URL)" -o "$${download_dir}/Chinook_MySql.sql"; \
 	curl --fail --location --retry 3 --retry-all-errors --connect-timeout 15 --max-time 180 \
 		"$(SAKILA_URL)" -o "$${download_dir}/sakila-db.zip"; \
+	echo "$(SAKILA_SHA256)  $${download_dir}/sakila-db.zip" | sha256sum --check --status || { echo "ERROR: неожиданный SHA-256 sakila-db.zip" >&2; exit 1; }; \
 	test "$$(git hash-object --no-filters "$${download_dir}/LICENSE.md")" = "$(CHINOOK_LICENSE_BLOB)" || { echo "ERROR: неожиданный Git blob SHA LICENSE.md" >&2; exit 1; }; \
 	test "$$(git hash-object --no-filters "$${download_dir}/Chinook_MySql.sql")" = "$(CHINOOK_MYSQL_BLOB)" || { echo "ERROR: неожиданный Git blob SHA Chinook_MySql.sql" >&2; exit 1; }; \
 	test -s "$${download_dir}/LICENSE.md" || { echo "ERROR: LICENSE.md пуст" >&2; exit 1; }; \
@@ -326,6 +344,10 @@ samples-mysql: check-env
 	sakila_data_source="$$(find "$${download_dir}/sakila" -type f -name sakila-data.sql -print -quit)"; \
 	test -n "$$sakila_schema_source" || { echo "ERROR: архив Sakila не содержит sakila-schema.sql" >&2; exit 1; }; \
 	test -n "$$sakila_data_source" || { echo "ERROR: архив Sakila не содержит sakila-data.sql" >&2; exit 1; }; \
+	for sakila_source in "$$sakila_schema_source" "$$sakila_data_source"; do \
+		grep -Fq 'Redistribution and use in source and binary forms' "$$sakila_source" || { echo "ERROR: в $${sakila_source} отсутствует ожидаемый New BSD notice" >&2; exit 1; }; \
+		grep -Fq 'THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS' "$$sakila_source" || { echo "ERROR: в $${sakila_source} отсутствует ожидаемый New BSD disclaimer" >&2; exit 1; }; \
+	done; \
 	cp "$$sakila_schema_source" "$${ready_dir}/020_sakila_schema.sql"; \
 	cp "$$sakila_data_source" "$${ready_dir}/021_sakila_data.sql"; \
 	if [[ -f "$${target_dir}/.gitkeep" ]]; then cp "$${target_dir}/.gitkeep" "$${ready_dir}/.gitkeep"; else touch "$${ready_dir}/.gitkeep"; fi; \
@@ -378,9 +400,15 @@ samples-postgres: check-env
 	curl --fail --location --retry 3 --retry-all-errors --connect-timeout 15 --max-time 180 \
 		"$(PAGILA_BASE_URL)/pagila-data.sql" -o "$${download_dir}/pagila-data.sql"; \
 	curl --fail --location --retry 3 --retry-all-errors --connect-timeout 15 --max-time 180 \
+		"$(PAGILA_LICENSE_URL)" -o "$${download_dir}/LICENSE.pagila.txt"; \
+	curl --fail --location --retry 3 --retry-all-errors --connect-timeout 15 --max-time 180 \
 		"$(CHINOOK_LICENSE_URL)" -o "$${download_dir}/LICENSE.md"; \
 	curl --fail --location --retry 3 --retry-all-errors --connect-timeout 15 --max-time 180 \
 		"$(CHINOOK_POSTGRES_URL)" -o "$${download_dir}/Chinook_PostgreSql.sql"; \
+	test "$$(git hash-object --no-filters "$${download_dir}/LICENSE.pagila.txt")" = "$(PAGILA_LICENSE_BLOB)" || { echo "ERROR: неожиданный Git blob SHA Pagila LICENSE.txt" >&2; exit 1; }; \
+	test "$$(git hash-object --no-filters "$${download_dir}/pagila-schema.sql")" = "$(PAGILA_SCHEMA_BLOB)" || { echo "ERROR: неожиданный Git blob SHA pagila-schema.sql" >&2; exit 1; }; \
+	test "$$(git hash-object --no-filters "$${download_dir}/pagila-data.sql")" = "$(PAGILA_DATA_BLOB)" || { echo "ERROR: неожиданный Git blob SHA pagila-data.sql" >&2; exit 1; }; \
+	test -s "$${download_dir}/LICENSE.pagila.txt" || { echo "ERROR: Pagila LICENSE.txt пуст" >&2; exit 1; }; \
 	test -s "$${download_dir}/pagila-schema.sql" || { echo "ERROR: pagila-schema.sql пуст" >&2; exit 1; }; \
 	test -s "$${download_dir}/pagila-data.sql" || { echo "ERROR: pagila-data.sql пуст" >&2; exit 1; }; \
 	grep -Fq 'CREATE TABLE public.actor' "$${download_dir}/pagila-schema.sql" || { echo "ERROR: в schema нет таблицы actor" >&2; exit 1; }; \
@@ -406,8 +434,24 @@ samples-postgres: check-env
 		test "$$(grep -Fxc "$${expected_line}" "$${chinook_source}" || true)" = 1 || { echo "ERROR: неожиданный формат database-level строки: $${expected_line}" >&2; exit 1; }; \
 	done; \
 	test "$$(awk 'BEGIN { in_comment = 0; count = 0 } { upper = toupper($$0) } /^[[:space:]]*\/\*/ { in_comment = 1 } !in_comment && (upper ~ /^[[:space:]]*(DROP|CREATE)[[:space:]]+DATABASE/ || upper ~ /^[[:space:]]*\\(C|CONNECT)([[:space:]]|$$)/) { count++ } /\*\// { in_comment = 0 } END { print count }' "$${chinook_source}")" = 3 || { echo "ERROR: Chinook PostgreSQL содержит неожиданные database-level statements" >&2; exit 1; }; \
-	cp "$${download_dir}/pagila-schema.sql" "$${ready_dir}/010_pagila_schema.sql"; \
-	cp "$${download_dir}/pagila-data.sql" "$${ready_dir}/020_pagila_data.sql"; \
+	sed 's/\r$$//' "$${download_dir}/LICENSE.pagila.txt" > "$${download_dir}/LICENSE.pagila.normalized.txt"; \
+	{ \
+		echo '-- Pagila license notice (upstream LICENSE.txt):'; \
+		sed 's/^/-- /' "$${download_dir}/LICENSE.pagila.normalized.txt"; \
+		echo; \
+		cat "$${download_dir}/pagila-schema.sql"; \
+	} > "$${ready_dir}/010_pagila_schema.sql"; \
+	{ \
+		echo '-- Pagila license notice (upstream LICENSE.txt):'; \
+		sed 's/^/-- /' "$${download_dir}/LICENSE.pagila.normalized.txt"; \
+		echo; \
+		cat "$${download_dir}/pagila-data.sql"; \
+	} > "$${ready_dir}/020_pagila_data.sql"; \
+	while IFS= read -r license_line || [[ -n "$${license_line}" ]]; do \
+		for pagila_ready_file in "$${ready_dir}/010_pagila_schema.sql" "$${ready_dir}/020_pagila_data.sql"; do \
+			grep -Fxq -- "-- $${license_line}" "$${pagila_ready_file}" || { echo "ERROR: Pagila notice перенесён не полностью в $${pagila_ready_file}" >&2; exit 1; }; \
+		done; \
+	done < "$${download_dir}/LICENSE.pagila.normalized.txt"; \
 	{ \
 		echo '-- Chinook Database MIT license notice (upstream LICENSE.md):'; \
 		sed 's/^/-- /' "$${download_dir}/LICENSE.normalized.md"; \
@@ -438,13 +482,45 @@ samples-postgres: check-env
 mysql-grants: wait-mysql
 	$(COMPOSE) exec -T mysql /docker-entrypoint-initdb.d/090_grant_training_access.sh
 
-mysql-import: wait-mysql
-	@test -n "$(FILE)" || { echo "ERROR: укажите FILE=path/to/database.sql" >&2; exit 1; }
-	@test -f "$(FILE)" || { echo "ERROR: файл $(FILE) не найден" >&2; exit 1; }
-	@echo "Импортируем $(FILE) от имени root..."
-	$(COMPOSE) exec -T mysql sh -c 'MYSQL_PWD="$$MYSQL_ROOT_PASSWORD" mysql -uroot' < "$(FILE)"
-	@$(MAKE) --no-print-directory mysql-grants
+mysql-import:
+	@set -Eeuo pipefail; \
+	if [[ -z "$${FILE:-}" ]]; then echo "ERROR: укажите FILE=path/to/file.sql" >&2; exit 1; fi; \
+	if [[ -z "$${DATABASE:-}" ]]; then echo "ERROR: укажите DATABASE=database_name" >&2; exit 1; fi; \
+	if [[ ! -f "$${FILE}" || ! -r "$${FILE}" || ! -s "$${FILE}" ]]; then echo "ERROR: FILE должен быть существующим читаемым непустым обычным файлом" >&2; exit 1; fi; \
+	if [[ ! "$${DATABASE}" =~ ^[a-z][a-z0-9_]{0,62}$$ ]]; then echo "ERROR: недопустимое имя MySQL database: $${DATABASE}" >&2; exit 1; fi; \
+	case "$${DATABASE}" in mysql|information_schema|performance_schema|sys) echo "ERROR: импорт в системную MySQL database запрещён: $${DATABASE}" >&2; exit 1 ;; esac
+	@$(MAKE) --no-print-directory wait-mysql
+	@set -Eeuo pipefail; \
+	$(LOAD_ENV) \
+	if ! $(COMPOSE) exec -T -e IMPORT_DATABASE="$${DATABASE}" mysql sh -c 'MYSQL_PWD="$$DB_PASSWORD" exec mysql --host=127.0.0.1 --user="$$DB_USER" --batch --skip-column-names "$$IMPORT_DATABASE" --execute "SELECT 1;"' >/dev/null; then \
+		echo "ERROR: DB_USER cannot connect to MySQL database $${DATABASE}; import was not started" >&2; exit 1; \
+	fi; \
+	echo "Импортируем $${FILE} в MySQL database $${DATABASE} от имени DB_USER..."; \
+	$(COMPOSE) exec -T -e IMPORT_DATABASE="$${DATABASE}" mysql sh -c 'MYSQL_PWD="$$DB_PASSWORD" exec mysql --host=127.0.0.1 --user="$$DB_USER" --binary-mode=1 "$$IMPORT_DATABASE"' < "$${FILE}"; \
+	if ! $(COMPOSE) exec -T -e IMPORT_DATABASE="$${DATABASE}" mysql sh -c 'MYSQL_PWD="$$DB_PASSWORD" exec mysql --host=127.0.0.1 --user="$$DB_USER" --batch --skip-column-names "$$IMPORT_DATABASE" --execute "SELECT 1;"' >/dev/null; then \
+		echo "ERROR: DB_USER cannot reconnect to MySQL database $${DATABASE} after import" >&2; exit 1; \
+	fi
 	@$(MAKE) --no-print-directory check-mysql-access
+
+postgres-import:
+	@set -Eeuo pipefail; \
+	if [[ -z "$${FILE:-}" ]]; then echo "ERROR: укажите FILE=path/to/file.sql" >&2; exit 1; fi; \
+	if [[ -z "$${DATABASE:-}" ]]; then echo "ERROR: укажите DATABASE=database_name" >&2; exit 1; fi; \
+	if [[ ! -f "$${FILE}" || ! -r "$${FILE}" || ! -s "$${FILE}" ]]; then echo "ERROR: FILE должен быть существующим читаемым непустым обычным файлом" >&2; exit 1; fi; \
+	if [[ ! "$${DATABASE}" =~ ^[a-z][a-z0-9_]{0,62}$$ ]]; then echo "ERROR: недопустимое имя PostgreSQL database: $${DATABASE}" >&2; exit 1; fi; \
+	case "$${DATABASE}" in postgres|template0|template1) echo "ERROR: импорт в системную PostgreSQL database запрещён: $${DATABASE}" >&2; exit 1 ;; esac
+	@$(MAKE) --no-print-directory wait-postgres
+	@set -Eeuo pipefail; \
+	$(LOAD_ENV) \
+	if ! $(COMPOSE) exec -T -e IMPORT_DATABASE="$${DATABASE}" postgres sh -c 'PGPASSWORD="$$DB_PASSWORD" exec psql --host=127.0.0.1 --username="$$DB_USER" --dbname="$$IMPORT_DATABASE" --no-psqlrc --set=ON_ERROR_STOP=1 --command="SELECT 1;"' >/dev/null; then \
+		echo "ERROR: DB_USER cannot connect to PostgreSQL database $${DATABASE}; import was not started" >&2; exit 1; \
+	fi; \
+	echo "Импортируем $${FILE} в PostgreSQL database $${DATABASE} от имени DB_USER..."; \
+	$(COMPOSE) exec -T -e IMPORT_DATABASE="$${DATABASE}" postgres sh -c 'PGPASSWORD="$$DB_PASSWORD" exec psql --host=127.0.0.1 --username="$$DB_USER" --dbname="$$IMPORT_DATABASE" --no-psqlrc --set=ON_ERROR_STOP=1 --file=-' < "$${FILE}"; \
+	if ! $(COMPOSE) exec -T -e IMPORT_DATABASE="$${DATABASE}" postgres sh -c 'PGPASSWORD="$$DB_PASSWORD" exec psql --host=127.0.0.1 --username="$$DB_USER" --dbname="$$IMPORT_DATABASE" --no-psqlrc --set=ON_ERROR_STOP=1 --command="SELECT 1;"' >/dev/null; then \
+		echo "ERROR: DB_USER cannot reconnect to PostgreSQL database $${DATABASE} after import" >&2; exit 1; \
+	fi
+	@$(MAKE) --no-print-directory check-postgres-access
 
 check-mysql-access: wait-mysql
 	$(COMPOSE) exec -T mysql /docker-entrypoint-initdb.d/099_check_training_access.sh
@@ -474,10 +550,15 @@ clean-mysql: check-env
 	@$(LOAD_ENV) \
 	project_dir_abs="$$(realpath -m "$(PROJECT_DIR)")"; \
 	data_dir_abs="$$(realpath -m "$${MYSQL_DATA_DIR}")"; \
-	case "$${data_dir_abs}" in "$${project_dir_abs}"/*) ;; *) echo "ERROR: MYSQL_DATA_DIR должен находиться внутри проекта: $${data_dir_abs}" >&2; exit 1 ;; esac; \
-	data_dir_rel="$$(realpath --relative-to="$${project_dir_abs}" "$${data_dir_abs}")"; \
+	data_dir_rel="$${data_dir_abs#"$${project_dir_abs}"/}"; \
 	echo "🗑️  Удаление только данных MySQL: $${MYSQL_DATA_DIR}"; \
-	$(COMPOSE_UI) down --remove-orphans; \
+	container_id="$$( $(COMPOSE) ps --all --quiet mysql )"; \
+	if [[ -n "$${container_id}" ]]; then \
+		echo "⏹️  Остановка и удаление только MySQL..."; \
+		$(COMPOSE) rm --stop --force mysql; \
+	else \
+		echo "Контейнер MySQL отсутствует; останавливать нечего."; \
+	fi; \
 	docker run --rm --user 0:0 --entrypoint sh \
 		-e DATA_DIR_REL="$${data_dir_rel}" -e HOST_UID="$(HOST_UID)" -e HOST_GID="$(HOST_GID)" \
 		-v "$${project_dir_abs}:/workspace" "mysql:$${MYSQL_VERSION}" \
@@ -489,10 +570,15 @@ clean-postgres: check-env
 	@$(LOAD_ENV) \
 	project_dir_abs="$$(realpath -m "$(PROJECT_DIR)")"; \
 	data_dir_abs="$$(realpath -m "$${POSTGRES_DATA_DIR}")"; \
-	case "$${data_dir_abs}" in "$${project_dir_abs}"/*) ;; *) echo "ERROR: POSTGRES_DATA_DIR должен находиться внутри проекта: $${data_dir_abs}" >&2; exit 1 ;; esac; \
-	data_dir_rel="$$(realpath --relative-to="$${project_dir_abs}" "$${data_dir_abs}")"; \
+	data_dir_rel="$${data_dir_abs#"$${project_dir_abs}"/}"; \
 	echo "🗑️  Удаление только данных PostgreSQL: $${POSTGRES_DATA_DIR}"; \
-	$(COMPOSE_UI) down --remove-orphans; \
+	container_id="$$( $(COMPOSE) ps --all --quiet postgres )"; \
+	if [[ -n "$${container_id}" ]]; then \
+		echo "⏹️  Остановка и удаление только PostgreSQL..."; \
+		$(COMPOSE) rm --stop --force postgres; \
+	else \
+		echo "Контейнер PostgreSQL отсутствует; останавливать нечего."; \
+	fi; \
 	docker run --rm --user 0:0 --entrypoint sh \
 		-e DATA_DIR_REL="$${data_dir_rel}" -e HOST_UID="$(HOST_UID)" -e HOST_GID="$(HOST_GID)" \
 		-v "$${project_dir_abs}:/workspace" "postgres:$${POSTGRES_VERSION}" \
@@ -505,11 +591,8 @@ clean-all: check-env
 	project_dir_abs="$$(realpath -m "$(PROJECT_DIR)")"; \
 	mysql_abs="$$(realpath -m "$${MYSQL_DATA_DIR}")"; \
 	postgres_abs="$$(realpath -m "$${POSTGRES_DATA_DIR}")"; \
-	for data_dir_abs in "$$mysql_abs" "$$postgres_abs"; do \
-		case "$$data_dir_abs" in "$${project_dir_abs}"/*) ;; *) echo "ERROR: data-каталоги должны находиться внутри проекта: $$data_dir_abs" >&2; exit 1 ;; esac; \
-	done; \
-	mysql_rel="$$(realpath --relative-to="$${project_dir_abs}" "$$mysql_abs")"; \
-	postgres_rel="$$(realpath --relative-to="$${project_dir_abs}" "$$postgres_abs")"; \
+	mysql_rel="$${mysql_abs#"$${project_dir_abs}"/}"; \
+	postgres_rel="$${postgres_abs#"$${project_dir_abs}"/}"; \
 	echo "🗑️  Удаление данных MySQL и PostgreSQL..."; \
 	$(COMPOSE_UI) down --remove-orphans; \
 	docker run --rm --user 0:0 --entrypoint sh \
@@ -528,5 +611,5 @@ reinit-postgres: clean-postgres
 	@$(MAKE) --no-print-directory check-postgres-access
 
 reinit-all: clean-all
-	@$(MAKE) --no-print-directory up-no-ui
+	@$(MAKE) --no-print-directory up
 	@$(MAKE) --no-print-directory check

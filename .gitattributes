@@ -16,3 +16,15 @@
 *.conf text eol=lf
 *.ini text eol=lf
 *.make text eol=lf
+
+# Бинарные изображения и архивы
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.gz binary
+*.tgz binary

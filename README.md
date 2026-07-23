@@ -1,551 +1,235 @@
-# SQL Lab (Docker)
+<p align="center">
+  <img
+    src="docs/assets/docker-sql-lab-cover.png"
+    alt="Docker SQL Lab — локальный стенд MySQL и PostgreSQL"
+    width="100%"
+  >
+</p>
 
-Локальный учебный SQL-стенд на Docker Compose с независимыми сервисами:
+# Docker SQL Lab
 
-- MySQL 9.7.1 LTS;
-- PostgreSQL 18.4 — последняя стабильная major-ветка с пятилетним сроком
-  поддержки;
-- один опциональный Adminer Docker Official Image 5.4.2 для обеих СУБД.
+## Выберите язык
 
-Upstream Adminer уже выпускает 5.4.4, но официальный Docker image пока
-закреплён на 5.4.2. Поэтому стенд использует точный официальный тег 5.4.2 и не
-собирает собственный образ только ради расхождения версий.
+| Русский | English | Español | 中文 | Français | Deutsch |
+| --- | --- | --- | --- | --- | --- |
+| **Выбран** | [English](docs/langs/README_en.md) | [Español](docs/langs/README_es.md) | [中文](docs/langs/README_zh.md) | [Français](docs/langs/README_fr.md) | [Deutsch](docs/langs/README_de.md) |
 
-В MySQL и PostgreSQL всегда создаётся небольшая база `demo`. Для MySQL
-опционально доступны Sakila и Chinook, для PostgreSQL — Pagila и та же
-Chinook. Это позволяет сравнивать запросы к одинаковой учебной модели в двух
-СУБД.
+Локальный Docker Compose-стенд для практики SQL и знакомства с MySQL и
+PostgreSQL. Каждую СУБД можно запускать отдельно или обе вместе. Компактная
+`demo` создаётся автоматически, а необязательные учебные базы Sakila, Pagila
+и Chinook дают готовые данные для упражнений. Adminer подключается только при
+необходимости.
+
+## Скринкасты
+
+В записях используется PhpStorm. Вместо него подойдут DataGrip, DBeaver,
+Adminer или другой клиент MySQL/PostgreSQL.
+
+| Сценарий | Яндекс.Диск | Google Drive | Что показано |
+|---|---|---|---|
+| Первый запуск с обязательной `demo`, затем добавление учебных баз | [Смотреть](https://disk.yandex.ru/i/Kj4TcMSBuIDVeA "docker-sql-lab-demo-then-training-databases.mp4") | [Смотреть](https://drive.google.com/file/d/1HzYWbMuBEobXlbGQYNfHYVAq95TLqEPf/view?usp=sharing "docker-sql-lab-demo-then-training-databases.mp4") | Запуск MySQL и PostgreSQL с обязательной `demo`; проверка; подготовка Sakila, Pagila и Chinook; подтверждённая переинициализация; повторная проверка и SQL-запросы. |
+| Первый запуск с заранее подготовленными учебными базами | [Смотреть](https://disk.yandex.ru/i/nFgJZto8agbdWw "docker-sql-lab-training-databases-first-start.mp4") | [Смотреть](https://drive.google.com/file/d/1nKiGrJ4QINLCQcRk-k6vfTakpWsw-JS7/view?usp=sharing "docker-sql-lab-training-databases-first-start.mp4") | Подготовка Sakila, Pagila и Chinook до первого запуска; единая инициализация обязательной `demo` и учебных баз; проверка доступа и SQL-запросы. |
+
+## Стек
+
+- MySQL 9.7.1 LTS
+- PostgreSQL 18.4
+- Adminer 5.4.2 Docker Official Image
+- Docker Compose v2
+- GNU Make и Bash для команд проекта и сценариев инициализации
+
+Закреплённые значения по умолчанию заданы в
+[`.docker.env.example`](.docker.env.example); `make init` создаёт из него
+локальный `.docker.env`. Сервисы описаны в
+[`docker-compose.yml`](docker-compose.yml).
+
+<details>
+<summary>⚠️ Важно: это учебное окружение</summary>
+
+Проект не является готовым шаблоном для промышленной эксплуатации. Для
+внешнего использования нужны отдельные решения по учётным данным, публикации
+сервисов в сети, хранению данных, резервному копированию и эксплуатации.
+
+</details>
+
+## Основные возможности
+
+- MySQL и PostgreSQL работают независимо или одновременно.
+- Обязательная `demo` в каждой СУБД содержит одинаковые начальные записи.
+- Необязательные Sakila и Chinook доступны для MySQL, Pagila и Chinook — для
+  PostgreSQL.
+- Adminer — отдельный дополнительный веб-интерфейс для обеих СУБД.
+- Каталоги данных, инициализации и учебных баз разделены по СУБД и подключены
+  в контейнеры с хоста.
+- Проверки конфигурации и доступа, импорт доверенных SQL-файлов и команды
+  очистки и переинициализации, удаляющие данные,
+  собраны в [`Makefile`](Makefile).
+
+## Требования
+
+1. Docker Engine или Docker Desktop с Docker Compose v2.
+2. GNU Make, Bash и базовые утилиты командной строки Unix, используемые
+   сценариями.
+
+Рекомендуемая среда: Linux; macOS с Docker Desktop; Windows с Docker Desktop
+и WSL2. Выполняйте команды из корня репозитория. Ветка проекта по умолчанию —
+`master`.
 
 ## Быстрый старт
-
-Полный стенд с Adminer:
 
 ```bash
 make init
 make up
 ```
 
-Полный стенд без UI:
+`make init` создаёт локальный `.docker.env` из отслеживаемого
+[`.docker.env.example`](.docker.env.example), проверяет контролируемые пути
+хранения и создаёт рабочие каталоги. При первом запуске официальные точки
+входа инициализируют обе СУБД. Даже без необязательных учебных баз вы получите
+рабочие MySQL и PostgreSQL с обязательной `demo` и начальными записями.
+
+`make up` запускает MySQL, PostgreSQL и Adminer; `make up-no-ui` — обе СУБД
+без Adminer. С настройками по умолчанию Adminer доступен по адресу
+`http://127.0.0.1:8081`.
+
+Подробно о запуске, подключениях и учётных данных:
+[Начало работы](docs/langs/ru/getting-started.md).
+
+### Нужны готовые учебные данные?
+
+Учебные базы не обязательны: `demo` создаётся всегда; для MySQL доступны
+Sakila и Chinook, для PostgreSQL — Pagila и Chinook.
+
+**Первый запуск, каталоги данных пусты**
 
 ```bash
-make up-no-ui
+make init
+make samples-mysql
+make samples-postgres
+make up
 ```
 
-Одиночные режимы:
+Учебные базы подготавливаются до первой инициализации; официальные точки входа
+загрузят их вместе с `demo`.
 
-```bash
-make up-mysql
-make up-mysql-ui
-make up-postgres
-make up-postgres-ui
-```
+> **Внимание:** переинициализация удаляет данные выбранной СУБД. Резервная
+> копия нужна, только если требуется сохранить собственные данные; для
+> одноразового учебного стенда без ценных изменений она не обязательна.
 
-Adminer можно добавить к уже работающим СУБД или остановить отдельно:
+<details>
+<summary>📦 Стенд уже запускался: добавить или повторно использовать учебные базы</summary>
 
-```bash
-make up-ui
-make down-ui
-```
+**Уже инициализировано без учебных баз.** Обычный `make up` не применит новые
+файлы инициализации или учебных баз. Сначала сохраните важные данные, затем
+выполните нужный вариант:
 
-Команды одиночного запуска не останавливают уже работающие сервисы. Они лишь
-не запускают другие сервисы автоматически.
+- MySQL: `make samples-mysql`, затем `make reinit-mysql CONFIRM=1`.
+- PostgreSQL: `make samples-postgres`, затем `make reinit-postgres CONFIRM=1`.
+- Обе СУБД: `make samples-mysql`, `make samples-postgres`, затем `make reinit-all CONFIRM=1`.
+
+> **Внимание:** `reinit-*` удаляет данные выбранной СУБД и выполняется только с точным `CONFIRM=1`.
+
+**Учебные базы уже установлены.** Используйте обычный `make up` или выбранную
+цель `make up-*`: повторная загрузка и переинициализация не нужны, базы
+сохраняются в каталогах хоста, подключённых в контейнеры.
+
+</details>
+
+Подробнее: [Базы и учебные данные](docs/langs/ru/databases.md).
 
 ## Режимы запуска
 
 | Команда | MySQL | PostgreSQL | Adminer |
 |---|---|---|---|
-| `make up` | запускает | запускает | запускает |
-| `make up-no-ui` | запускает или оставляет активным | запускает или оставляет активным | останавливает, если запущен |
-| `make up-mysql` | запускает | не запускает автоматически | не запускает автоматически |
-| `make up-mysql-ui` | запускает | не запускает автоматически | запускает |
-| `make up-postgres` | не запускает автоматически | запускает | не запускает автоматически |
-| `make up-postgres-ui` | не запускает автоматически | запускает | запускает |
-| `make up-ui` | не меняет состояние | не меняет состояние | запускает |
-| `make down-ui` | не меняет состояние | не меняет состояние | останавливает |
+| `make up` | Запускает | Запускает | Запускает |
+| `make up-no-ui` | Запускает | Запускает | Останавливает |
+| `make up-mysql` | Запускает | Не запускает | Не запускает |
+| `make up-postgres` | Не запускает | Запускает | Не запускает |
 
-`make up-no-ui` не выполняет общий `docker compose down`: сначала он
-останавливает только Adminer, затем запускает или оставляет запущенными обе
-СУБД и ждёт их готовности.
+Команды одной СУБД не останавливают уже работающую другую; Adminer управляется
+отдельно. Полный набор целей описан в [`Makefile`](Makefile).
 
-## Порты
+## Подключения и доступные базы
 
-Порты задаются в `.docker.env`:
+Внутри Compose-сети Adminer использует серверы `mysql` и `postgres`. Клиенты на
+хосте используют `127.0.0.1` и настроенные `MYSQL_PORT` или `POSTGRES_PORT`.
+Для обычной работы укажите `DB_USER` и `DB_PASSWORD`.
 
-| Сервис | Переменная | Значение по умолчанию |
+| СУБД | Доступна всегда | После инициализации необязательных учебных баз |
 |---|---|---|
-| MySQL | `MYSQL_PORT` | `3306` |
-| PostgreSQL | `POSTGRES_PORT` | `5432` |
-| Adminer | `ADMINER_PORT` | `8081` |
+| MySQL | `demo` | `sakila`, `chinook` |
+| PostgreSQL | `demo` | `pagila`, `chinook` |
 
-При значениях по умолчанию Adminer открыт на
-`http://127.0.0.1:8081`.
+Имена необязательных баз действительны только после их фактической инициализации.
+Подробности: [запуск и подключения](docs/langs/ru/getting-started.md) ·
+[базы и учебные данные](docs/langs/ru/databases.md).
 
-## Credentials
-
-`.docker.env.example` содержит только локальные учебные значения:
+## Кратко об учётных данных
 
 | Назначение | Пользователь | Пароль |
 |---|---|---|
-| Администратор MySQL | `MYSQL_ROOT_PASSWORD` задаёт пароль пользователя `root` | `MYSQL_ROOT_PASSWORD` |
-| Администратор PostgreSQL | `POSTGRES_SUPERUSER` | `POSTGRES_SUPERUSER_PASSWORD` |
 | Общий учебный пользователь | `DB_USER` | `DB_PASSWORD` |
+| Администратор MySQL | `root` | `MYSQL_ROOT_PASSWORD` |
+| Суперпользователь PostgreSQL | `POSTGRES_SUPERUSER` | `POSTGRES_SUPERUSER_PASSWORD` |
 
-Административная PostgreSQL-роль и `DB_USER` обязаны различаться. Реальный
-`.docker.env` исключён из Git.
+`POSTGRES_SUPERUSER` и `DB_USER` должны быть разными ролями. Для упражнений
+используйте учебного пользователя и замените примерные пароли до публикации
+сервисов.
 
-Значения из примера нельзя использовать в production, публичном окружении или
-на доступном извне сервере.
+## Базы и ключевые проверки
 
-## Один Adminer для двух СУБД
-
-Adminer находится в общей Compose-сети с MySQL и PostgreSQL, не зависит от их
-состояния и включается профилем `ui`. Это лёгкий optional UI с дизайном
-`nette`; без профиля он не запускается и не расходует ресурсы.
-
-Plugin `adminer/plugins-enabled/001-login-servers.php` заменяет свободный ввод
-движка и сервера выпадающим списком из двух допустимых подключений:
-
-```text
-MySQL (mysql)
-PostgreSQL (postgres)
-```
-
-Невалидный default server `db` в форме отсутствует. Пользователь выбирает
-одно подключение, затем вводит общий `DB_USER`/`DB_PASSWORD` и базу.
-
-Страница входа содержит локальную подсказку: выбрать MySQL или PostgreSQL,
-использовать значения `DB_USER`/`DB_PASSWORD` из `.docker.env` и базу `demo`.
-После отдельной подготовки samples доступны также Sakila и Chinook для MySQL,
-Pagila и Chinook для PostgreSQL.
-
-Вход в MySQL:
-
-```text
-Server: MySQL (mysql)
-Username: значение DB_USER
-Password: значение DB_PASSWORD
-Database: demo, sakila, chinook или пустое поле
-```
-
-Вход в PostgreSQL:
-
-```text
-Server: PostgreSQL (postgres)
-Username: значение DB_USER
-Password: значение DB_PASSWORD
-Database: demo, pagila или chinook, если optional sample установлен
-```
-
-Имена `mysql` и `postgres` применяются только внутри Docker-сети.
-
-## Внешние клиенты
-
-Полноценные IDE-клиенты — PhpStorm, DataGrip, DBeaver — и CLI на хосте
-подключаются к `127.0.0.1` и опубликованному порту, а не к имени
-Compose-сервиса.
-
-MySQL:
-
-```text
-Host: 127.0.0.1
-Port: значение MYSQL_PORT
-User: значение DB_USER
-Password: значение DB_PASSWORD
-Database: demo, sakila или chinook, если optional sample установлен
-```
-
-PostgreSQL:
-
-```text
-Host: 127.0.0.1
-Port: значение POSTGRES_PORT
-User: значение DB_USER
-Password: значение DB_PASSWORD
-Database: demo, pagila или chinook, если optional sample установлен
-```
-
-CLI внутри контейнеров не требует размещать пароль в shell history:
+Обе `demo` содержат эквивалентную таблицу `demo_users` с пятью строками.
+Статические проверки не требуют запущенных СУБД:
 
 ```bash
-make mysql
-make mysql-user
-make postgres
-make postgres-user
+make check-env
+make config
+make test-storage-paths
 ```
 
-## Учебные базы
-
-MySQL:
-
-- `demo` — обязательная база с таблицей `demo.demo_users`;
-- `sakila` — опциональная официальная учебная база;
-- `chinook` — опциональная база с музыкальным каталогом и продажами.
-
-PostgreSQL:
-
-- `demo` — обязательная база с таблицей `public.demo_users`;
-- `pagila` — опциональный PostgreSQL-порт Sakila с фильмами, актёрами,
-  клиентами и прокатом;
-- `chinook` — та же модель музыкального каталога и продаж, что в MySQL.
-
-Обе таблицы `demo_users` имеют одинаковую смысловую структуру:
-
-| Поле | Назначение |
-|---|---|
-| `id` | автоматически создаваемый integer primary key |
-| `name` | `varchar(100) NOT NULL` |
-| `email` | `varchar(150) NOT NULL UNIQUE` |
-| `created_at` | обязательный timestamp с `CURRENT_TIMESTAMP` по умолчанию |
-
-MySQL использует `TIMESTAMP`, PostgreSQL — `timestamptz`. В обе базы
-идемпотентно добавляются одинаковые обязательные строки:
-
-| Name | Email | Created at |
-|---|---|---|
-| Alice | `alice@example.com` | `2025-01-10 09:00:00+03` |
-| Bob | `bob@example.com` | `2025-01-11 10:15:00+03` |
-| Carol | `carol@example.com` | `2025-01-12 11:30:00+03` |
-| Dave | `dave@example.com` | `2025-01-13 12:45:00+03` |
-| Eve | `eve@example.com` | `2025-01-14 14:00:00+03` |
-
-Дополнительные пользовательские строки разрешены и не считаются ошибкой при
-проверках.
-
-Обычные `make init`, `make up`, `make up-no-ui`, `make up-mysql` и
-`make up-postgres` не скачивают и не подготавливают optional samples. Обе СУБД
-полностью работоспособны только с обязательной `demo`.
-
-## Optional samples MySQL
-
-Скачать Chinook и официальный архив Sakila и подготовить локальные SQL-файлы:
-
-```bash
-make samples-mysql
-```
-
-Для нового пустого каталога данных:
-
-```bash
-make samples-mysql
-make up-mysql
-```
-
-Для уже инициализированного MySQL:
-
-```bash
-make samples-mysql
-make reinit-mysql CONFIRM=1
-```
-
-MySQL выполняет init-файлы только при первом запуске с пустым
-`MYSQL_DATA_DIR`. Загрузка samples не изменяет данные и не перезапускает
-контейнеры автоматически.
-
-`make samples-mysql` больше не скачивает World. Файлы сохраняются
-детерминированно:
-
-```text
-samples/mysql/
-├── .gitkeep
-├── 010_chinook.sql
-├── 020_sakila_schema.sql
-└── 021_sakila_data.sql
-```
-
-Эти загруженные SQL-файлы считаются локально сгенерированными и исключены из
-Git. `initdb/mysql/050_load_optional_samples.sh` пропускает отсутствующие
-samples, безопасно пропускает уже полную `chinook` и прекращает init с ошибкой
-при неполной/неожиданной `chinook` или неполной паре schema/data Sakila.
-
-## Optional samples PostgreSQL: Pagila и Chinook
-
-Подготовить Pagila и Chinook отдельной явной командой:
-
-```bash
-make samples-postgres
-```
-
-Для существующей локальной установки `.docker.env` не перезаписывается
-автоматически: добавьте в него вручную
-`POSTGRES_SAMPLES_DIR=./samples/postgres`.
-
-Для нового пустого каталога данных:
-
-```bash
-make samples-postgres
-make up-postgres
-```
-
-Для уже инициализированного PostgreSQL требуется явное пересоздание только его
-data-каталога:
-
-```bash
-make samples-postgres
-make reinit-postgres CONFIRM=1
-```
-
-`make samples-postgres` только скачивает и проверяет SQL обеих баз: команда не
-запускает контейнеры, не удаляет данные и не выполняет reinit. Официальный
-PostgreSQL entrypoint читает `/docker-entrypoint-initdb.d` лишь при
-инициализации пустого `POSTGRES_DATA_DIR`, поэтому добавление файлов не меняет
-существующую базу.
-
-Используется upstream
-[`devrimgunduz/pagila`](https://github.com/devrimgunduz/pagila), закреплённый
-на immutable commit
-[`5ba5a57aeb159f75f02aca2432d3c262186d13d3`](https://github.com/devrimgunduz/pagila/commit/5ba5a57aeb159f75f02aca2432d3c262186d13d3).
-Загружаются только `pagila-schema.sql` и COPY-вариант `pagila-data.sql`;
-альтернативный insert-файл не используется. Pagila распространяется по
-PostgreSQL License.
-
-Проверенная ревизия Pagila использует схему `public`, стандартные
-PL/pgSQL-функции и `COPY FROM stdin`; дополнительных extensions, пакетов или
-собственного Docker image не требуется. Подготовленные файлы сохраняются
-детерминированно:
-
-```text
-samples/postgres/
-├── 010_pagila_schema.sql
-├── 020_pagila_data.sql
-└── 030_chinook.sql
-```
-
-Все файлы локальные и исключены из Git. Отсутствие пары Pagila безопасно
-пропускается, а наличие только одного файла останавливает чистую инициализацию
-с ошибкой. Chinook обрабатывается независимо: она также optional. Повторный
-загрузчик отдельно пропускает уже полные Pagila и Chinook с ожидаемым
-владельцем, но не удаляет и не исправляет автоматически неполную базу или
-неверное владение. Для этого требуется явный
-`make reinit-postgres CONFIRM=1`. Штатные команды очистки data-каталогов не
-удаляют `samples/postgres`.
-
-## Источник и безопасная подготовка Chinook
-
-Оба варианта Chinook берутся только из официального upstream
-[`lerocha/chinook-database`](https://github.com/lerocha/chinook-database) на
-immutable commit
-[`4a944a942426e1f3263fe539155fb7ef92b04b4a`](https://github.com/lerocha/chinook-database/commit/4a944a942426e1f3263fe539155fb7ef92b04b4a),
-соответствующем release `v1.4.5`. Chinook распространяется по MIT license;
-полный copyright и permission notice из закреплённого `LICENSE.md` добавляется
-SQL-комментариями в каждую подготовленную локальную копию.
-
-Upstream SQL нельзя выполнять напрямую: он содержит `DROP DATABASE`,
-`CREATE DATABASE` и выбор базы. Команды подготовки проверяют Git blob SHA,
-версию, целевую СУБД, ключевые таблицы и точный формат трёх setup-строк, затем
-удаляют только эти известные строки. Готовый SQL повторно проверяется на
-отсутствие database-level setup и публикуется атомарно вместе с остальными
-sample-файлами. Он загружается только в заранее выбранную базу `chinook`.
-
-Chinook выбрана вместо MySQL World, потому что upstream явно указывает MIT
-license и предоставляет одинаковые MySQL/PostgreSQL datasets. Существующая
-база `world` автоматически не удаляется. Чтобы убрать старую `world` и
-получить `chinook` в уже инициализированном MySQL, сначала подготовьте samples,
-затем осознанно выполните `make reinit-mysql CONFIRM=1`; эта команда удалит
-данные только MySQL.
-
-## Инициализация и порядок файлов
-
-```text
-initdb/
-├── mysql/
-│   ├── 001_demo.sql
-│   ├── 030_training_database.sql.example
-│   ├── 050_load_optional_samples.sh
-│   ├── 090_grant_training_access.sh
-│   └── 099_check_training_access.sh
-└── postgres/
-    ├── 001_create_training_role.sh
-    ├── 010_initialize_demo.sh
-    ├── 030_training_database.sh.example
-    ├── 050_load_optional_samples.sh
-    └── 099_check_training_access.sh
-```
-
-Файлы `.example` служат шаблонами и не выполняются entrypoint автоматически.
-MySQL-шаблон показывает добавление новой базы перед grants. PostgreSQL-шаблон
-безопасно передаёт значения через psql variables, назначает `DB_USER`
-владельцем новой базы и создаёт начальную таблицу от его имени.
-
-Оба официальных entrypoint обрабатывают init-каталог только для пустого
-data-каталога. Изменение init-файлов не обновляет существующую базу.
-
-## Конфигурация СУБД
-
-```text
-conf/
-├── mysql/
-│   └── my.cnf
-└── postgres/
-    └── postgresql.conf.example
-```
-
-`conf/mysql/my.cnf` подключается к MySQL и фиксирует `utf8mb4`, collation
-`utf8mb4_0900_ai_ci`, строгий SQL mode с `ONLY_FULL_GROUP_BY`, часовой пояс
-`+03:00` и отключение DNS lookup клиентов. Performance-настройки оставлены
-только понятными закомментированными примерами: универсальных значений для
-лимитов памяти, соединений и slow query log нет.
-
-`conf/postgres/postgresql.conf.example` полностью закомментирован и
-автоматически к Compose не подключается. Он показывает, как ресурсы и тип
-нагрузки влияют на `shared_buffers`, `work_mem`, `maintenance_work_mem` и
-временную диагностику медленных запросов. Активного PostgreSQL performance
-tuning и отдельного logging collector нет: сервер продолжает писать в штатные
-Docker logs.
-
-## Права учебного пользователя
-
-В MySQL `090_grant_training_access.sh` создаёт или обновляет `DB_USER` и
-выдаёт ему `ALL PRIVILEGES` отдельно на каждую фактически существующую
-несистемную базу. Глобальные административные права на `*.*` не выдаются.
-
-В PostgreSQL роль `DB_USER` получает `LOGIN`, владеет обязательной базой
-`demo` и схемой `public`, но остаётся без `SUPERUSER`, `CREATEDB`,
-`CREATEROLE`, `REPLICATION` и `BYPASSRLS`. Таблица `demo_users` создаётся от
-имени этой роли. Если подготовлена Pagila, база создаётся с владельцем
-`DB_USER`, а schema и data загружаются от его имени. Закреплённый upstream dump
-содержит `OWNER TO postgres`; загрузчик безопасно заменяет эти фиксированные
-owner-выражения на quoted psql-переменную `DB_USER`, не меняя локальные
-SQL-файлы и не повышая права роли. PostgreSQL Chinook также создаётся с
-владельцем `DB_USER`; этой роли принадлежат схема `public`, таблицы и все
-созданные в ней последовательности, представления, функции и пользовательские
-типы. Пароли не хардкодятся и берутся только из environment контейнеров.
-
-## Проверки
-
-Проверка каждой СУБД отдельно:
-
-```bash
-make check-mysql-access
-make check-postgres-access
-```
-
-MySQL-проверка требует `demo.demo_users`, все пять обязательных email,
-проверяет temporary read/write и пробный откатываемый `INSERT` в `demo_users`.
-Она также проверяет доступ ко всем существующим пользовательским базам и
-`sakila.actor` только при наличии sample. Для optional Chinook отдельно
-проверяются таблицы с точным регистром `Artist`, `Album`, `Track`, `Customer`,
-`Invoice`, данные, join и откатываемая запись.
-
-PostgreSQL-проверка подключается как `DB_USER` по TCP к работающему серверу,
-проверяет владение базой и `demo_users`, все пять обязательных email, создаёт
-временную таблицу, записывает и читает строку, выполняет откатываемый `INSERT`
-в `demo_users` и подтверждает отсутствие всех административных атрибутов роли.
-Наличие Pagila и Chinook определяется независимо по фактическим базам, а не по
-sample-файлам. Для каждой установленной базы дополнительно проверяются
-владелец, ожидаемые таблицы и владельцы объектов, данные, читающий join,
-временный объект и откатываемый `INSERT` без остаточных данных. Поэтому
-поддерживаются все варианты: только `demo`, `demo + pagila`,
-`demo + chinook`, `demo + pagila + chinook`.
-
-Для полного стенда:
-
-```bash
-make check
-```
-
-Команда проверяет Compose-конфигурацию и фактический доступ `DB_USER` к обеим
-СУБД.
-
-## Troubleshooting optional Chinook
-
-Если загрузчик сообщает, что `chinook` уже существует, но неполна или имеет
-неожиданного владельца, он намеренно ничего не удаляет и не пытается исправить
-базу поверх существующих объектов. Проверьте, что sample подготовлен текущей
-командой `make samples-mysql` или `make samples-postgres`, сохраните нужные
-данные, затем при необходимости явно выполните reinit соответствующей СУБД с
-`CONFIRM=1`. Reinit удаляет data-каталог выбранной СУБД; обычные `make up*`
-этого не делают.
-
-Если подготовленный `010_chinook.sql` или `030_chinook.sql` отклонён до
-загрузки, не запускайте raw upstream SQL вручную. Повторите подготовку и
-проверьте сеть; несовпадение Git blob SHA или формата setup-строк считается
-ошибкой безопасности.
-
-## Остановка и очистка данных
-
-Остановить все сервисы без удаления bind-mounted данных:
-
-```bash
-make down
-```
-
-Удаление данных всегда требует явного `CONFIRM=1`:
-
-```bash
-make clean-mysql CONFIRM=1
-make clean-postgres CONFIRM=1
-make clean-all CONFIRM=1
-```
-
-Первые две команды удаляют только каталог соответствующей СУБД. `clean-all`
-удаляет только `data/mysql` и `data/postgres`. `.docker.env`, конфигурация,
-init-файлы, optional samples и backup сохраняются. Перед удалением проверяется,
-что data-каталог находится внутри проекта; пустой каталог возвращается
-текущему UID/GID.
-
-Чистая инициализация с последующей проверкой:
-
-```bash
-make reinit-mysql CONFIRM=1
-make reinit-postgres CONFIRM=1
-make reinit-all CONFIRM=1
-```
-
-Одиночные команды запускают только выбранную СУБД без Adminer. `reinit-all`
-запускает обе СУБД без Adminer и выполняет общую проверку.
-
-## Основные команды
-
-| Команда | Назначение |
-|---|---|
-| `make init` | Создать `.docker.env`, data/init/samples-каталоги и проверить скрипты |
-| `make pull` | Скачать три образа |
-| `make config` | Проверить итоговую Compose-конфигурацию |
-| `make samples-mysql` | Подготовить optional Chinook и Sakila без запуска контейнеров |
-| `make samples-postgres` | Подготовить optional Pagila и Chinook без запуска контейнеров |
-| `make status` | Показать MySQL, PostgreSQL и профильный Adminer |
-| `make logs` | Смотреть общие логи |
-| `make log postgres` | Смотреть лог выбранного сервиса (`SERVICE=postgres` также поддерживается) |
-| `make in postgres` | Открыть shell выбранного контейнера (`SERVICE=postgres` также поддерживается) |
-| `make wait-mysql` | Дождаться MySQL |
-| `make wait-postgres` | Дождаться PostgreSQL |
-| `make mysql-grants` | Повторно применить MySQL grants |
-| `make mysql-import FILE=...` | Импортировать MySQL dump, применить grants и проверить доступ |
-| `make dump` / `make restore` | Создать / восстановить backup MySQL `demo` |
-
-## Структура данных и Git
-
-Данные СУБД разделены:
-
-```text
-data/
-├── mysql/
-└── postgres/
-```
-
-Контейнеры могут присвоить файлам числовые UID/GID своих системных
-пользователей. Не редактируйте содержимое data-каталогов вручную.
-
-Для официального образа PostgreSQL 18 host-каталог `data/postgres` подключён к
-`/var/lib/postgresql`; фактический versioned data directory образ создаёт
-внутри этого bind mount.
-
-В Git не должны попадать:
-
-```text
-.docker.env
-.env
-data/
-backup/
-.tmp/
-samples/mysql/*.sql
-samples/postgres/*.sql
-```
-
-Обязательные init-скрипты и оба шаблона `.example` остаются отслеживаемыми.
+После запуска `make check` проверяет `demo` и доступ `DB_USER`, а
+`make test-sql-imports` — публичные цели импорта доверенных SQL-файлов. Порядок
+и ограничения: [Проверки и эксплуатация](docs/langs/ru/operations.md).
+
+## Безопасность и жизненный цикл
+
+- `BIND_ADDRESS=127.0.0.1` публикует сервисы только на интерфейсе обратной петли
+  (loopback).
+- `BIND_ADDRESS=0.0.0.0` открывает их на всех интерфейсах: заранее настройте
+  межсетевой экран, надёжные учётные данные и доверенную сеть.
+- Официальные точки входа выполняют инициализацию только для пустого каталога
+  данных.
+- `make mysql-import` и `make postgres-import` принимают только доверенный SQL.
+  Это не изолированная среда (`sandbox`): возможна частичная запись без полного
+  автоматического отката. Перед важным импортом проверьте SQL-файл и сделайте
+  подходящую резервную копию.
+- Встроенные `make dump` и `make restore` покрывают только MySQL `demo`;
+  встроенной цели резервного копирования для PostgreSQL нет.
+- Все цели `clean-*` и `reinit-*` удаляют данные и требуют точного
+  `CONFIRM=1`.
+
+Безопасные последовательности:
+[Проверки и эксплуатация](docs/langs/ru/operations.md).
+При ошибках сначала соберите диагностику:
+[Диагностика](docs/langs/ru/troubleshooting.md).
+
+## Лицензии учебных данных
+
+Необязательные учебные наборы данных сохраняют лицензии и уведомления об
+авторских правах и лицензиях исходных проектов. Происхождение, закреплённые
+ревизии, сведения о целостности и тексты лицензий приведены в
+[`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
 
 ---
 
-Автор: **Александр Юрченко**
-
-Лицензия: MIT
+<p align="center">
+  <a href="https://yaleksandr89.github.io/" title="yaleksandr89.github.io">
+    <img
+      src="docs/assets/ya-logo-dark-50px.png"
+      alt="YA"
+      width="32"
+    >
+  </a>
+  <br>
+  <a href="https://yaleksandr89.github.io/">yaleksandr89.github.io</a>
+</p>

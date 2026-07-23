@@ -27,6 +27,9 @@ jobs:
           docker --version
           docker compose version
 
+      - name: Test managed storage path validation
+        run: make test-storage-paths
+
       - name: Initialize environment
         run: make init
 
@@ -38,6 +41,9 @@ jobs:
 
       - name: Check complete database stand
         run: make check
+
+      - name: Smoke-test trusted SQL imports
+        run: make test-sql-imports
 
       - name: Confirm databases are running without Adminer
         run: |
@@ -53,6 +59,38 @@ jobs:
 
       - name: Start Adminer
         run: make up-ui
+
+      - name: Confirm all published ports bind to loopback
+        run: |
+          set -Eeuo pipefail
+          set -a
+          source .docker.env
+          set +a
+
+          compose=(docker compose --env-file .docker.env -p "${COMPOSE_PROJECT_NAME}" --profile ui)
+
+          assert_loopback_binding() {
+            local service="$1"
+            local container_port="$2"
+            local container_id
+            local host_ip
+
+            container_id="$("${compose[@]}" ps --quiet "${service}")"
+            if [[ -z "${container_id}" ]]; then
+              echo "ERROR: Compose service ${service} has no container ID" >&2
+              exit 1
+            fi
+
+            host_ip="$(docker inspect --format "{{(index (index .NetworkSettings.Ports \"${container_port}/tcp\") 0).HostIp}}" "${container_id}")"
+            if [[ "${host_ip}" != "127.0.0.1" ]]; then
+              echo "ERROR: ${service} (${container_id}) publishes ${container_port}/tcp on HostIp '${host_ip}', expected '127.0.0.1'" >&2
+              exit 1
+            fi
+          }
+
+          assert_loopback_binding mysql 3306
+          assert_loopback_binding postgres 5432
+          assert_loopback_binding adminer 8080
 
       - name: Smoke-test Adminer login page
         run: |
