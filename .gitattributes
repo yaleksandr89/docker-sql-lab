@@ -1,5 +1,5 @@
 # Принудительно LF для всех текстовых файлов
-* text eol=lf
+* text=auto eol=lf
 
 # Настройки для специфичных типов
 *.bat text eol=crlf

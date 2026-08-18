@@ -101,7 +101,7 @@ SOFTWARE.
 - Official archive:
   `https://downloads.mysql.com/docs/sakila-db.zip`
 - Verified archive SHA-256:
-  `c2ecb3dec28d752241ccfca02974ba970de3c3fc5d98887fd3f9d5843f946672`
+  `86c6e32c9b3f382fa709019a76c41cc1cd826368dd048f7b7323aaef5af968f4`
 - Files used:
   - `sakila-schema.sql`
   - `sakila-data.sql`

@@ -1,3 +1,11 @@
+# Docker SQL Lab
+
+[![Source Code](https://img.shields.io/badge/source-yaleksandr89%2Fdocker--sql--lab-blue.svg?style=flat-square)](https://github.com/yaleksandr89/docker-sql-lab)
+[![SQL Lab Check](https://github.com/yaleksandr89/docker-sql-lab/actions/workflows/sql-lab-check.yml/badge.svg)](https://github.com/yaleksandr89/docker-sql-lab/actions/workflows/sql-lab-check.yml)
+[![MySQL Check](https://github.com/yaleksandr89/docker-sql-lab/actions/workflows/mysql-check.yml/badge.svg)](https://github.com/yaleksandr89/docker-sql-lab/actions/workflows/mysql-check.yml)
+[![PostgreSQL Check](https://github.com/yaleksandr89/docker-sql-lab/actions/workflows/postgres-check.yml/badge.svg)](https://github.com/yaleksandr89/docker-sql-lab/actions/workflows/postgres-check.yml)
+[![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE.md)
+
 <p align="center">
   <img
     src="docs/assets/docker-sql-lab-cover.png"
@@ -5,8 +13,6 @@
     width="100%"
   >
 </p>
-
-# Docker SQL Lab
 
 ## Выберите язык
 
