@@ -32,7 +32,7 @@ COMPOSE_UI = $(COMPOSE) --profile ui
 
 MYSQL_SAMPLES_TMP_DIR := .tmp/mysql-samples
 SAKILA_URL := https://downloads.mysql.com/docs/sakila-db.zip
-SAKILA_SHA256 := c2ecb3dec28d752241ccfca02974ba970de3c3fc5d98887fd3f9d5843f946672
+SAKILA_SHA256 := 86c6e32c9b3f382fa709019a76c41cc1cd826368dd048f7b7323aaef5af968f4
 POSTGRES_SAMPLES_TMP_DIR := .tmp/postgres-samples
 PAGILA_REF := 5ba5a57aeb159f75f02aca2432d3c262186d13d3
 PAGILA_BASE_URL := https://raw.githubusercontent.com/devrimgunduz/pagila/$(PAGILA_REF)
