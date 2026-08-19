@@ -1,17 +1,19 @@
 ###############################################################################
 # Makefile — SQL Lab
-# Управление локальным учебным стендом MySQL, PostgreSQL и Adminer
+# Управление локальным учебным стендом MySQL, PostgreSQL, ClickHouse и Adminer
 ###############################################################################
 
 SHELL := bash
 .DEFAULT_GOAL := help
 
 .PHONY: help init check-env pull config up up-no-ui up-mysql up-mysql-ui \
-        up-postgres up-postgres-ui up-ui down-ui wait-mysql wait-postgres \
-        down status logs log in mysql mysql-user postgres postgres-user sh \
+        up-postgres up-postgres-ui up-clickhouse up-ui down-ui wait-mysql wait-postgres \
+        wait-clickhouse down status logs log in mysql mysql-user postgres postgres-user \
+        clickhouse clickhouse-user sh \
         samples-mysql samples-postgres mysql-grants mysql-import postgres-import check check-mysql-access \
-        check-postgres-access dump restore clean-mysql clean-postgres clean-all \
-        reinit-mysql reinit-postgres reinit-all test-storage-paths test-sql-imports
+        check-postgres-access check-clickhouse-access dump restore clean-mysql clean-postgres \
+        clean-clickhouse clean-all reinit-mysql reinit-postgres reinit-clickhouse reinit-all \
+        test-storage-paths test-sql-imports
 
 PROJECT_DIR := $(CURDIR)
 ENV_FILE_EXAMPLE := .docker.env.example
@@ -19,12 +21,14 @@ ENV_FILE := .docker.env
 HOST_UID := $(shell id -u)
 HOST_GID := $(shell id -g)
 
-REQUIRED_ENV_VARS := COMPOSE_PROJECT_NAME MYSQL_VERSION POSTGRES_VERSION ADMINER_VERSION \
-                     MYSQL_PORT POSTGRES_PORT ADMINER_PORT \
-                     MYSQL_DATA_DIR POSTGRES_DATA_DIR MYSQL_CONF_FILE \
-                     MYSQL_INITDB_DIR POSTGRES_INITDB_DIR MYSQL_SAMPLES_DIR POSTGRES_SAMPLES_DIR \
-                     MYSQL_DATABASE POSTGRES_DATABASE MYSQL_ROOT_PASSWORD \
-                     POSTGRES_SUPERUSER POSTGRES_SUPERUSER_PASSWORD DB_USER DB_PASSWORD
+REQUIRED_ENV_VARS := COMPOSE_PROJECT_NAME MYSQL_VERSION POSTGRES_VERSION CLICKHOUSE_VERSION ADMINER_VERSION \
+                     MYSQL_PORT POSTGRES_PORT CLICKHOUSE_HTTP_PORT ADMINER_PORT \
+                     MYSQL_DATA_DIR POSTGRES_DATA_DIR CLICKHOUSE_DATA_DIR MYSQL_CONF_FILE \
+                     MYSQL_INITDB_DIR POSTGRES_INITDB_DIR CLICKHOUSE_INITDB_DIR \
+                     MYSQL_SAMPLES_DIR POSTGRES_SAMPLES_DIR \
+                     MYSQL_DATABASE POSTGRES_DATABASE CLICKHOUSE_DATABASE MYSQL_ROOT_PASSWORD \
+                     POSTGRES_SUPERUSER POSTGRES_SUPERUSER_PASSWORD DB_USER DB_PASSWORD \
+                     CLICKHOUSE_ADMIN_USER CLICKHOUSE_ADMIN_PASSWORD
 
 LOAD_ENV = set -a; source "$(ENV_FILE)"; set +a;
 COMPOSE = docker compose --env-file "$(ENV_FILE)" -p "$$(awk -F= '$$1 == "COMPOSE_PROJECT_NAME" { print substr($$0, index($$0, "=") + 1); exit }' "$(ENV_FILE)")"
@@ -57,7 +61,7 @@ POSITIONAL_SERVICE := $(if $(filter in log,$(COMMAND_GOAL)),$(word 2,$(MAKECMDGO
 SERVICE ?= $(POSITIONAL_SERVICE)
 
 ifneq ($(strip $(POSITIONAL_SERVICE)),)
-  ifneq ($(filter $(POSITIONAL_SERVICE),mysql postgres adminer),$(POSITIONAL_SERVICE))
+  ifneq ($(filter $(POSITIONAL_SERVICE),mysql postgres clickhouse adminer),$(POSITIONAL_SERVICE))
     $(error неизвестный Compose-сервис: $(POSITIONAL_SERVICE))
   endif
   .PHONY: $(POSITIONAL_SERVICE)
@@ -68,21 +72,22 @@ endif
 help:
 	@echo "Основные команды:"
 	@echo "  make init                         создать .docker.env и рабочие каталоги"
-	@echo "  make pull                         скачать образы MySQL, PostgreSQL и Adminer"
-	@echo "  make up                           запустить обе СУБД и Adminer"
-	@echo "  make up-no-ui                     запустить обе СУБД и остановить Adminer"
+	@echo "  make pull                         скачать образы трёх СУБД и Adminer"
+	@echo "  make up                           запустить три СУБД и Adminer"
+	@echo "  make up-no-ui                     запустить три СУБД и остановить Adminer"
 	@echo "  make up-mysql[-ui]                запустить только MySQL, опционально с UI"
 	@echo "  make up-postgres[-ui]             запустить только PostgreSQL, опционально с UI"
+	@echo "  make up-clickhouse                запустить только ClickHouse"
 	@echo "  make up-ui / make down-ui         включить / остановить только Adminer"
-	@echo "  make check                        проверить Compose и доступ DB_USER к обеим СУБД"
+	@echo "  make check                        проверить Compose и доступ DB_USER к трём СУБД"
 	@echo "  make samples-mysql                скачать optional samples Chinook и Sakila"
 	@echo "  make samples-postgres             скачать optional samples Pagila и Chinook"
 	@echo "  make test-storage-paths           проверить защиту managed storage paths"
 	@echo "  make test-sql-imports             проверить trusted SQL imports в запущенных СУБД"
 	@echo "  make mysql-import FILE=... DATABASE=...   импортировать доверенный text SQL в MySQL"
 	@echo "  make postgres-import FILE=... DATABASE=... импортировать доверенный text SQL в PostgreSQL"
-	@echo "  make clean-{mysql,postgres,all} CONFIRM=1"
-	@echo "  make reinit-{mysql,postgres,all} CONFIRM=1"
+	@echo "  make clean-{mysql,postgres,clickhouse,all} CONFIRM=1"
+	@echo "  make reinit-{mysql,postgres,clickhouse,all} CONFIRM=1"
 
 $(ENV_FILE):
 	@cp "$(ENV_FILE_EXAMPLE)" "$(ENV_FILE)"
@@ -102,14 +107,26 @@ check-env: $(ENV_FILE)
 		echo "ERROR: POSTGRES_SUPERUSER и DB_USER должны быть разными ролями" >&2; \
 		exit 1; \
 	fi; \
-	if [[ "$${MYSQL_DATABASE}" != "demo" || "$${POSTGRES_DATABASE}" != "demo" ]]; then \
-		echo "ERROR: обязательные MYSQL_DATABASE и POSTGRES_DATABASE должны называться demo" >&2; \
+	if [[ "$${CLICKHOUSE_ADMIN_USER}" == "$${DB_USER}" ]]; then \
+		echo "ERROR: CLICKHOUSE_ADMIN_USER и DB_USER должны быть разными пользователями" >&2; \
 		exit 1; \
 	fi; \
+	if [[ "$${MYSQL_DATABASE}" != "demo" || "$${POSTGRES_DATABASE}" != "demo" || "$${CLICKHOUSE_DATABASE}" != "demo" ]]; then \
+		echo "ERROR: обязательные MYSQL_DATABASE, POSTGRES_DATABASE и CLICKHOUSE_DATABASE должны называться demo" >&2; \
+		exit 1; \
+	fi; \
+	for variable_name in CLICKHOUSE_DATABASE CLICKHOUSE_ADMIN_USER DB_USER; do \
+		value="$${!variable_name}"; \
+		if [[ ! "$$value" =~ ^[A-Za-z_][A-Za-z0-9_]{0,62}$$ ]]; then \
+			echo "ERROR: $$variable_name должен быть консервативным ASCII identifier" >&2; \
+			exit 1; \
+		fi; \
+	done; \
 	"$(PROJECT_DIR)/scripts/validate-storage-paths.sh" \
 		--project-dir "$(PROJECT_DIR)" \
 		--mysql-data "$${MYSQL_DATA_DIR}" \
 		--postgres-data "$${POSTGRES_DATA_DIR}" \
+		--clickhouse-data "$${CLICKHOUSE_DATA_DIR}" \
 		--mysql-samples "$${MYSQL_SAMPLES_DIR}" \
 		--postgres-samples "$${POSTGRES_SAMPLES_DIR}"
 
@@ -125,9 +142,11 @@ init: check-env
 	for directory in \
 		"$${MYSQL_DATA_DIR}" \
 		"$${POSTGRES_DATA_DIR}" \
+		"$${CLICKHOUSE_DATA_DIR}" \
 		"$$(dirname "$${MYSQL_CONF_FILE}")" \
 		"$${MYSQL_INITDB_DIR}" \
 		"$${POSTGRES_INITDB_DIR}" \
+		"$${CLICKHOUSE_INITDB_DIR}" \
 		"$${MYSQL_SAMPLES_DIR}" \
 		"$${POSTGRES_SAMPLES_DIR}"; do \
 		if [[ -n "$$directory" && ! -d "$$directory" ]]; then \
@@ -140,6 +159,7 @@ init: check-env
 	test -f "adminer/plugins-enabled/001-login-servers.php" || { echo "ERROR: не найден adminer/plugins-enabled/001-login-servers.php" >&2; exit 1; }; \
 	test -f "adminer/plugins-enabled/002-login-help.php" || { echo "ERROR: не найден adminer/plugins-enabled/002-login-help.php" >&2; exit 1; }; \
 	test -f "$${MYSQL_INITDB_DIR}/001_demo.sql" || { echo "ERROR: не найден обязательный MySQL init" >&2; exit 1; }; \
+	test -f "$${CLICKHOUSE_INITDB_DIR}/010_vector_demo.sql" || { echo "ERROR: не найден обязательный ClickHouse vector init" >&2; exit 1; }; \
 	for script in \
 		"$${MYSQL_INITDB_DIR}/050_load_optional_samples.sh" \
 		"$${MYSQL_INITDB_DIR}/090_grant_training_access.sh" \
@@ -147,30 +167,34 @@ init: check-env
 		"$${POSTGRES_INITDB_DIR}/001_create_training_role.sh" \
 		"$${POSTGRES_INITDB_DIR}/010_initialize_demo.sh" \
 		"$${POSTGRES_INITDB_DIR}/050_load_optional_samples.sh" \
-		"$${POSTGRES_INITDB_DIR}/099_check_training_access.sh"; do \
+		"$${POSTGRES_INITDB_DIR}/099_check_training_access.sh" \
+		"$${CLICKHOUSE_INITDB_DIR}/001_create_training_user.sh" \
+		"$${CLICKHOUSE_INITDB_DIR}/099_check_training_access.sh"; do \
 		test -x "$$script" || { echo "ERROR: обязательный скрипт отсутствует или не исполняемый: $$script" >&2; exit 1; }; \
 	done
 
 pull: check-env
-	@echo "Скачиваем образы MySQL, PostgreSQL и Adminer..."
-	$(COMPOSE_UI) pull mysql postgres adminer
+	@echo "Скачиваем образы MySQL, PostgreSQL, ClickHouse и Adminer..."
+	$(COMPOSE_UI) pull mysql postgres clickhouse adminer
 
 config: check-env
 	@$(COMPOSE_UI) config --quiet
 	@echo "✅ Docker Compose configuration is valid."
 
 up: init
-	@echo "▶️  Запуск MySQL, PostgreSQL и Adminer..."
-	$(COMPOSE_UI) up -d mysql postgres adminer
+	@echo "▶️  Запуск MySQL, PostgreSQL, ClickHouse и Adminer..."
+	$(COMPOSE_UI) up -d mysql postgres clickhouse adminer
 	@$(MAKE) --no-print-directory wait-mysql
 	@$(MAKE) --no-print-directory wait-postgres
+	@$(MAKE) --no-print-directory wait-clickhouse
 
 up-no-ui: init
 	@$(MAKE) --no-print-directory down-ui
-	@echo "▶️  Запуск MySQL и PostgreSQL без Adminer..."
-	$(COMPOSE) up -d mysql postgres
+	@echo "▶️  Запуск MySQL, PostgreSQL и ClickHouse без Adminer..."
+	$(COMPOSE) up -d mysql postgres clickhouse
 	@$(MAKE) --no-print-directory wait-mysql
 	@$(MAKE) --no-print-directory wait-postgres
+	@$(MAKE) --no-print-directory wait-clickhouse
 
 up-mysql: init
 	@echo "▶️  Запуск MySQL без автоматического запуска других сервисов..."
@@ -191,6 +215,11 @@ up-postgres-ui: init
 	@echo "▶️  Запуск PostgreSQL и Adminer..."
 	$(COMPOSE_UI) up -d postgres adminer
 	@$(MAKE) --no-print-directory wait-postgres
+
+up-clickhouse: init
+	@echo "▶️  Запуск ClickHouse без автоматического запуска других сервисов..."
+	$(COMPOSE) up -d clickhouse
+	@$(MAKE) --no-print-directory wait-clickhouse
 
 up-ui: init
 	@echo "▶️  Запуск только Adminer..."
@@ -229,6 +258,18 @@ wait-postgres: check-env
 	$(COMPOSE_UI) ps; \
 	exit 1
 
+wait-clickhouse: check-env
+	@for ((attempt = 1; attempt <= 120; attempt++)); do \
+		if $(COMPOSE) exec -T clickhouse sh -c 'test "$$(cat /proc/1/comm)" = clickhouse-serv && wget --quiet --output-document=/dev/null --header="X-ClickHouse-User: $$DB_USER" --header="X-ClickHouse-Key: $$DB_PASSWORD" --post-data="SELECT 1" http://127.0.0.1:8123/' >/dev/null 2>&1; then \
+			echo "✅ ClickHouse готов принимать подключения."; \
+			exit 0; \
+		fi; \
+		sleep 2; \
+	done; \
+	echo "ERROR: ClickHouse не перешёл в готовое состояние" >&2; \
+	$(COMPOSE_UI) ps; \
+	exit 1
+
 down: check-env
 	@echo "⏹️  Остановка сервисов без удаления bind-mounted данных..."
 	$(COMPOSE_UI) down --remove-orphans
@@ -263,6 +304,14 @@ endif
 
 postgres-user: wait-postgres
 	$(COMPOSE) exec postgres sh -c 'PGPASSWORD="$$DB_PASSWORD" exec psql --host=127.0.0.1 --username="$$DB_USER" --dbname="$$POSTGRES_DB"'
+
+ifneq ($(POSITIONAL_SERVICE),clickhouse)
+clickhouse: wait-clickhouse
+	$(COMPOSE) exec clickhouse sh -c 'exec clickhouse-client --host=127.0.0.1 --user="$$CLICKHOUSE_USER" --password="$$CLICKHOUSE_PASSWORD" --database="$$CLICKHOUSE_DB"'
+endif
+
+clickhouse-user: wait-clickhouse
+	$(COMPOSE) exec clickhouse sh -c 'exec clickhouse-client --host=127.0.0.1 --user="$$DB_USER" --password="$$DB_PASSWORD" --database="$$CLICKHOUSE_DB"'
 
 sh: check-env
 	$(COMPOSE) exec mysql bash
@@ -528,9 +577,13 @@ check-mysql-access: wait-mysql
 check-postgres-access: wait-postgres
 	$(COMPOSE) exec -T postgres env POSTGRES_CHECK_HOST=127.0.0.1 /docker-entrypoint-initdb.d/099_check_training_access.sh
 
+check-clickhouse-access: wait-clickhouse
+	$(COMPOSE) exec -T clickhouse /docker-entrypoint-initdb.d/099_check_training_access.sh
+
 check: config
 	@$(MAKE) --no-print-directory check-mysql-access
 	@$(MAKE) --no-print-directory check-postgres-access
+	@$(MAKE) --no-print-directory check-clickhouse-access
 
 dump: wait-mysql
 	@mkdir -p backup
@@ -585,22 +638,44 @@ clean-postgres: check-env
 		-c 'rm -rf -- "/workspace/$${DATA_DIR_REL}" && mkdir -p "/workspace/$${DATA_DIR_REL}" && chown "$${HOST_UID}:$${HOST_GID}" "/workspace/$${DATA_DIR_REL}"'; \
 	echo "✅ Данные PostgreSQL удалены, пустой каталог возвращён пользователю $(HOST_UID):$(HOST_GID)."
 
+clean-clickhouse: check-env
+	@test "$(CONFIRM)" = "1" || { echo "ERROR: команда удаляет CLICKHOUSE_DATA_DIR. Повторите с CONFIRM=1" >&2; exit 1; }
+	@$(LOAD_ENV) \
+	project_dir_abs="$$(realpath -m "$(PROJECT_DIR)")"; \
+	data_dir_abs="$$(realpath -m "$${CLICKHOUSE_DATA_DIR}")"; \
+	data_dir_rel="$${data_dir_abs#"$${project_dir_abs}"/}"; \
+	echo "🗑️  Удаление только данных ClickHouse: $${CLICKHOUSE_DATA_DIR}"; \
+	container_id="$$( $(COMPOSE) ps --all --quiet clickhouse )"; \
+	if [[ -n "$${container_id}" ]]; then \
+		echo "⏹️  Остановка и удаление только ClickHouse..."; \
+		$(COMPOSE) rm --stop --force clickhouse; \
+	else \
+		echo "Контейнер ClickHouse отсутствует; останавливать нечего."; \
+	fi; \
+	docker run --rm --user 0:0 --entrypoint sh \
+		-e DATA_DIR_REL="$${data_dir_rel}" -e HOST_UID="$(HOST_UID)" -e HOST_GID="$(HOST_GID)" \
+		-v "$${project_dir_abs}:/workspace" "clickhouse:$${CLICKHOUSE_VERSION}" \
+		-c 'rm -rf -- "/workspace/$${DATA_DIR_REL}" && mkdir -p "/workspace/$${DATA_DIR_REL}" && chown "$${HOST_UID}:$${HOST_GID}" "/workspace/$${DATA_DIR_REL}"'; \
+	echo "✅ Данные ClickHouse удалены, пустой каталог возвращён пользователю $(HOST_UID):$(HOST_GID)."
+
 clean-all: check-env
-	@test "$(CONFIRM)" = "1" || { echo "ERROR: команда удаляет данные MySQL и PostgreSQL. Повторите с CONFIRM=1" >&2; exit 1; }
+	@test "$(CONFIRM)" = "1" || { echo "ERROR: команда удаляет данные MySQL, PostgreSQL и ClickHouse. Повторите с CONFIRM=1" >&2; exit 1; }
 	@$(LOAD_ENV) \
 	project_dir_abs="$$(realpath -m "$(PROJECT_DIR)")"; \
 	mysql_abs="$$(realpath -m "$${MYSQL_DATA_DIR}")"; \
 	postgres_abs="$$(realpath -m "$${POSTGRES_DATA_DIR}")"; \
+	clickhouse_abs="$$(realpath -m "$${CLICKHOUSE_DATA_DIR}")"; \
 	mysql_rel="$${mysql_abs#"$${project_dir_abs}"/}"; \
 	postgres_rel="$${postgres_abs#"$${project_dir_abs}"/}"; \
-	echo "🗑️  Удаление данных MySQL и PostgreSQL..."; \
+	clickhouse_rel="$${clickhouse_abs#"$${project_dir_abs}"/}"; \
+	echo "🗑️  Удаление данных MySQL, PostgreSQL и ClickHouse..."; \
 	$(COMPOSE_UI) down --remove-orphans; \
 	docker run --rm --user 0:0 --entrypoint sh \
-		-e MYSQL_REL="$$mysql_rel" -e POSTGRES_REL="$$postgres_rel" \
+		-e MYSQL_REL="$$mysql_rel" -e POSTGRES_REL="$$postgres_rel" -e CLICKHOUSE_REL="$$clickhouse_rel" \
 		-e HOST_UID="$(HOST_UID)" -e HOST_GID="$(HOST_GID)" \
-		-v "$${project_dir_abs}:/workspace" "mysql:$${MYSQL_VERSION}" \
-		-c 'for path in "$${MYSQL_REL}" "$${POSTGRES_REL}"; do rm -rf -- "/workspace/$${path}" && mkdir -p "/workspace/$${path}" && chown "$${HOST_UID}:$${HOST_GID}" "/workspace/$${path}"; done'; \
-	echo "✅ Оба data-каталога очищены; env, init, samples и backup сохранены."
+		-v "$${project_dir_abs}:/workspace" "clickhouse:$${CLICKHOUSE_VERSION}" \
+		-c 'for path in "$${MYSQL_REL}" "$${POSTGRES_REL}" "$${CLICKHOUSE_REL}"; do rm -rf -- "/workspace/$${path}" && mkdir -p "/workspace/$${path}" && chown "$${HOST_UID}:$${HOST_GID}" "/workspace/$${path}"; done'; \
+	echo "✅ Три data-каталога очищены; env, init, samples и backup сохранены."
 
 reinit-mysql: clean-mysql
 	@$(MAKE) --no-print-directory up-mysql
@@ -609,6 +684,10 @@ reinit-mysql: clean-mysql
 reinit-postgres: clean-postgres
 	@$(MAKE) --no-print-directory up-postgres
 	@$(MAKE) --no-print-directory check-postgres-access
+
+reinit-clickhouse: clean-clickhouse
+	@$(MAKE) --no-print-directory up-clickhouse
+	@$(MAKE) --no-print-directory check-clickhouse-access
 
 reinit-all: clean-all
 	@$(MAKE) --no-print-directory up

@@ -7,6 +7,7 @@ Usage: validate-storage-paths.sh \
   --project-dir PATH \
   --mysql-data PATH \
   --postgres-data PATH \
+  --clickhouse-data PATH \
   --mysql-samples PATH \
   --postgres-samples PATH
 USAGE
@@ -81,17 +82,19 @@ has_symlink_component() {
 project_dir=''
 mysql_data=''
 postgres_data=''
+clickhouse_data=''
 mysql_samples=''
 postgres_samples=''
 
 while (($#)); do
   case "$1" in
-    --project-dir|--mysql-data|--postgres-data|--mysql-samples|--postgres-samples)
+    --project-dir|--mysql-data|--postgres-data|--clickhouse-data|--mysql-samples|--postgres-samples)
       (($# >= 2)) || { usage; exit 2; }
       case "$1" in
         --project-dir) project_dir="$2" ;;
         --mysql-data) mysql_data="$2" ;;
         --postgres-data) postgres_data="$2" ;;
+        --clickhouse-data) clickhouse_data="$2" ;;
         --mysql-samples) mysql_samples="$2" ;;
         --postgres-samples) postgres_samples="$2" ;;
       esac
@@ -112,6 +115,7 @@ done
 require_value PROJECT_DIR "$project_dir"
 require_value MYSQL_DATA_DIR "$mysql_data"
 require_value POSTGRES_DATA_DIR "$postgres_data"
+require_value CLICKHOUSE_DATA_DIR "$clickhouse_data"
 require_value MYSQL_SAMPLES_DIR "$mysql_samples"
 require_value POSTGRES_SAMPLES_DIR "$postgres_samples"
 
@@ -121,9 +125,9 @@ project_dir_abs="$(realpath -m -- "$project_dir")"
 data_root="$project_dir_abs/data"
 samples_root="$project_dir_abs/samples"
 
-variable_names=(MYSQL_DATA_DIR POSTGRES_DATA_DIR MYSQL_SAMPLES_DIR POSTGRES_SAMPLES_DIR)
-raw_paths=("$mysql_data" "$postgres_data" "$mysql_samples" "$postgres_samples")
-allowed_roots=("$data_root" "$data_root" "$samples_root" "$samples_root")
+variable_names=(MYSQL_DATA_DIR POSTGRES_DATA_DIR CLICKHOUSE_DATA_DIR MYSQL_SAMPLES_DIR POSTGRES_SAMPLES_DIR)
+raw_paths=("$mysql_data" "$postgres_data" "$clickhouse_data" "$mysql_samples" "$postgres_samples")
+allowed_roots=("$data_root" "$data_root" "$data_root" "$samples_root" "$samples_root")
 resolved_paths=()
 
 for index in "${!variable_names[@]}"; do

@@ -43,6 +43,28 @@ services:
       timeout: 3s
       retries: 30
 
+  clickhouse:
+    image: clickhouse:${CLICKHOUSE_VERSION}
+    restart: unless-stopped
+    environment:
+      CLICKHOUSE_DB: ${CLICKHOUSE_DATABASE}
+      CLICKHOUSE_USER: ${CLICKHOUSE_ADMIN_USER}
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_ADMIN_PASSWORD}
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: 1
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      TZ: Europe/Moscow
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:${CLICKHOUSE_HTTP_PORT}:8123"
+    volumes:
+      - "${CLICKHOUSE_DATA_DIR}:/var/lib/clickhouse"
+      - "${CLICKHOUSE_INITDB_DIR}:/docker-entrypoint-initdb.d:ro"
+    healthcheck:
+      test: 'test "$$(cat /proc/1/comm)" = clickhouse-serv && wget --quiet --output-document=/dev/null --header="X-ClickHouse-User: $${DB_USER}" --header="X-ClickHouse-Key: $${DB_PASSWORD}" --post-data="SELECT 1" http://127.0.0.1:8123/'
+      interval: 5s
+      timeout: 3s
+      retries: 60
+
   adminer:
     image: adminer:${ADMINER_VERSION}
     restart: unless-stopped
