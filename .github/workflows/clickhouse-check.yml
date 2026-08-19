@@ -1,0 +1,133 @@
+name: ClickHouse check
+
+on:
+  pull_request:
+    branches:
+      - master
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  clickhouse-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Show Docker versions
+        run: |
+          set -Eeuo pipefail
+          docker --version
+          docker compose version
+
+      - name: Initialize environment
+        run: make init
+
+      - name: Validate Compose configuration
+        run: make config
+
+      - name: Start only ClickHouse
+        run: make up-clickhouse
+
+      - name: Check exact ClickHouse version
+        run: |
+          set -Eeuo pipefail
+          set -a
+          source .docker.env
+          set +a
+
+          clickhouse_version="$(
+            curl --fail --silent --show-error \
+              --header "X-ClickHouse-User: ${DB_USER}" \
+              --header "X-ClickHouse-Key: ${DB_PASSWORD}" \
+              --data-binary 'SELECT version() FORMAT TSVRaw' \
+              "http://127.0.0.1:${CLICKHOUSE_HTTP_PORT}/" \
+              | tr -d '\r\n'
+          )"
+          if [[ "${clickhouse_version}" != "${CLICKHOUSE_VERSION}" ]]; then
+            echo "Expected ClickHouse ${CLICKHOUSE_VERSION}, got ${clickhouse_version}" >&2
+            exit 1
+          fi
+
+      - name: Check ClickHouse training access and vector behavior
+        run: make check-clickhouse-access
+
+      - name: Smoke-test ClickHouse HTTP and play UI
+        run: |
+          set -Eeuo pipefail
+          set -a
+          source .docker.env
+          set +a
+
+          select_one="$(
+            curl --fail --silent --show-error \
+              --header "X-ClickHouse-User: ${DB_USER}" \
+              --header "X-ClickHouse-Key: ${DB_PASSWORD}" \
+              --data-binary 'SELECT 1 FORMAT TSVRaw' \
+              "http://127.0.0.1:${CLICKHOUSE_HTTP_PORT}/" \
+              | tr -d '\r\n'
+          )"
+          test "${select_one}" = "1"
+          curl --fail --silent --show-error \
+            "http://127.0.0.1:${CLICKHOUSE_HTTP_PORT}/play" \
+            --output /dev/null
+
+      - name: Confirm ClickHouse host exposure
+        run: |
+          set -Eeuo pipefail
+          set -a
+          source .docker.env
+          set +a
+
+          compose=(docker compose --env-file .docker.env -p "${COMPOSE_PROJECT_NAME}")
+          container_id="$("${compose[@]}" ps --quiet clickhouse)"
+          if [[ -z "${container_id}" ]]; then
+            echo 'ERROR: ClickHouse has no container ID' >&2
+            exit 1
+          fi
+
+          host_ip="$(docker inspect --format '{{with (index .NetworkSettings.Ports "8123/tcp")}}{{(index . 0).HostIp}}{{end}}' "${container_id}")"
+          if [[ "${host_ip}" != "127.0.0.1" ]]; then
+            echo "ERROR: ClickHouse publishes 8123/tcp on HostIp '${host_ip}', expected '127.0.0.1'" >&2
+            exit 1
+          fi
+
+          native_binding="$(docker inspect --format '{{with (index .NetworkSettings.Ports "9000/tcp")}}{{json .}}{{end}}' "${container_id}")"
+          if [[ -n "${native_binding}" ]]; then
+            echo "ERROR: ClickHouse unexpectedly publishes native 9000/tcp: ${native_binding}" >&2
+            exit 1
+          fi
+
+      - name: Restart only ClickHouse
+        run: |
+          set -Eeuo pipefail
+          set -a
+          source .docker.env
+          set +a
+
+          docker compose --env-file .docker.env -p "${COMPOSE_PROJECT_NAME}" restart clickhouse
+          make wait-clickhouse
+
+      - name: Recheck ClickHouse persistence
+        run: make check-clickhouse-access
+
+      - name: Show ClickHouse diagnostics
+        if: failure()
+        run: |
+          set -a
+          source .docker.env
+          set +a
+
+          docker compose --env-file .docker.env -p "${COMPOSE_PROJECT_NAME}" ps --all clickhouse || true
+          docker compose --env-file .docker.env -p "${COMPOSE_PROJECT_NAME}" logs --no-color clickhouse || true
+
+      - name: Stop containers
+        if: always()
+        run: make down

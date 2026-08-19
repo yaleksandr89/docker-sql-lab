@@ -7,10 +7,11 @@ return new class {
 <div style="display: flow-root;">
 <fieldset>
 <legend>Как войти</legend>
-<p>Выберите MySQL (mysql) или PostgreSQL (postgres).</p>
+<p>Выберите MySQL (mysql), PostgreSQL (postgres) или ClickHouse (clickhouse).</p>
 <p>Имя пользователя и пароль — значения <code>DB_USER</code> и <code>DB_PASSWORD</code> из файла <code>.docker.env</code>.</p>
 <p>Для PostgreSQL всегда доступна <code>demo</code>, а после отдельной подготовки и чистой инициализации — optional <code>pagila</code> и <code>chinook</code>.</p>
 <p>Для MySQL всегда доступна <code>demo</code>, а после отдельной подготовки и чистой инициализации — optional <code>sakila</code> и <code>chinook</code>.</p>
+<p>Для ClickHouse всегда доступна <code>demo</code> с таблицей <code>vector_items</code> для vector-search demo.</p>
 <p>Административные пользователи для обычной учебной работы не требуются.</p>
 </fieldset>
 </div>
