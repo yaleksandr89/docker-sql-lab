@@ -6,13 +6,7 @@
 [![PostgreSQL Check](https://github.com/yaleksandr89/docker-sql-lab/actions/workflows/postgres-check.yml/badge.svg)](https://github.com/yaleksandr89/docker-sql-lab/actions/workflows/postgres-check.yml)
 [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](../../LICENSE.md)
 
-<p align="center">
-  <img
-    src="../assets/docker-sql-lab-cover.png"
-    alt="Docker SQL Lab — 本地 MySQL 与 PostgreSQL 实验环境"
-    width="100%"
-  >
-</p>
+![Docker SQL Lab — 本地 MySQL 与 PostgreSQL 实验环境](../assets/docker-sql-lab-cover.png)
 
 ## 选择语言
 

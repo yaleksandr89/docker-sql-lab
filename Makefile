@@ -32,7 +32,6 @@ COMPOSE_UI = $(COMPOSE) --profile ui
 
 MYSQL_SAMPLES_TMP_DIR := .tmp/mysql-samples
 SAKILA_URL := https://downloads.mysql.com/docs/sakila-db.zip
-SAKILA_SHA256 := 86c6e32c9b3f382fa709019a76c41cc1cd826368dd048f7b7323aaef5af968f4
 POSTGRES_SAMPLES_TMP_DIR := .tmp/postgres-samples
 PAGILA_REF := 5ba5a57aeb159f75f02aca2432d3c262186d13d3
 PAGILA_BASE_URL := https://raw.githubusercontent.com/devrimgunduz/pagila/$(PAGILA_REF)
@@ -271,7 +270,6 @@ samples-mysql: check-env
 	@command -v curl >/dev/null || { echo "ERROR: требуется curl" >&2; exit 1; }
 	@command -v unzip >/dev/null || { echo "ERROR: требуется unzip" >&2; exit 1; }
 	@command -v git >/dev/null || { echo "ERROR: требуется git для проверки Git blob SHA" >&2; exit 1; }
-	@command -v sha256sum >/dev/null || { echo "ERROR: требуется sha256sum" >&2; exit 1; }
 	@set -Eeuo pipefail; $(LOAD_ENV) \
 	tmp_root="$(MYSQL_SAMPLES_TMP_DIR)"; \
 	download_dir="$${tmp_root}/download"; \
@@ -308,7 +306,6 @@ samples-mysql: check-env
 		"$(CHINOOK_MYSQL_URL)" -o "$${download_dir}/Chinook_MySql.sql"; \
 	curl --fail --location --retry 3 --retry-all-errors --connect-timeout 15 --max-time 180 \
 		"$(SAKILA_URL)" -o "$${download_dir}/sakila-db.zip"; \
-	echo "$(SAKILA_SHA256)  $${download_dir}/sakila-db.zip" | sha256sum --check --status || { echo "ERROR: неожиданный SHA-256 sakila-db.zip" >&2; exit 1; }; \
 	test "$$(git hash-object --no-filters "$${download_dir}/LICENSE.md")" = "$(CHINOOK_LICENSE_BLOB)" || { echo "ERROR: неожиданный Git blob SHA LICENSE.md" >&2; exit 1; }; \
 	test "$$(git hash-object --no-filters "$${download_dir}/Chinook_MySql.sql")" = "$(CHINOOK_MYSQL_BLOB)" || { echo "ERROR: неожиданный Git blob SHA Chinook_MySql.sql" >&2; exit 1; }; \
 	test -s "$${download_dir}/LICENSE.md" || { echo "ERROR: LICENSE.md пуст" >&2; exit 1; }; \

@@ -6,13 +6,7 @@
 [![PostgreSQL Check](https://github.com/yaleksandr89/docker-sql-lab/actions/workflows/postgres-check.yml/badge.svg)](https://github.com/yaleksandr89/docker-sql-lab/actions/workflows/postgres-check.yml)
 [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](../../LICENSE.md)
 
-<p align="center">
-  <img
-    src="../assets/docker-sql-lab-cover.png"
-    alt="Docker SQL Lab"
-    width="100%"
-  >
-</p>
+![Docker SQL Lab](../assets/docker-sql-lab-cover.png)
 
 ## Choose a language
 
