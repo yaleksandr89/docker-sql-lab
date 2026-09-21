@@ -100,8 +100,6 @@ SOFTWARE.
 
 - Official archive:
   `https://downloads.mysql.com/docs/sakila-db.zip`
-- Verified archive SHA-256:
-  `86c6e32c9b3f382fa709019a76c41cc1cd826368dd048f7b7323aaef5af968f4`
 - Files used:
   - `sakila-schema.sql`
   - `sakila-data.sql`
@@ -113,7 +111,9 @@ the New BSD license. Other materials in the distribution are not covered by
 that open license.
 
 SQL Lab extracts only those two SQL files. It does not publish the Sakila
-documentation or `sakila.mwb`. Before extraction, the archive SHA-256 is
-verified. Both SQL files must contain the expected New BSD notice and
+documentation or `sakila.mwb`. The archive is downloaded over HTTPS from the
+official MySQL URL. Its archive-level SHA-256 is intentionally not pinned
+because the upstream URL is unversioned and its bytes may change independently
+of this repository. Both SQL files must contain the expected New BSD notice and
 disclaimer, and they are copied without modifying their embedded copyright and
 license text.
