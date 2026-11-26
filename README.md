@@ -1,6 +1,10 @@
 # Docker SQL Lab
 
 [![Source Code](https://img.shields.io/badge/source-yaleksandr89%2Fdocker--sql--lab-blue.svg?style=flat-square)](https://github.com/yaleksandr89/docker-sql-lab)
+[![MySQL](https://img.shields.io/badge/MySQL-9.7-4479A1.svg?style=flat-square&logo=mysql&logoColor=white)](https://www.mysql.com/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-18-4169E1.svg?style=flat-square&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Adminer](https://img.shields.io/badge/Adminer-5.4-34567C.svg?style=flat-square)](https://www.adminer.org/)
+[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED.svg?style=flat-square&logo=docker&logoColor=white)](https://www.docker.com/)
 [![SQL Lab Check](https://github.com/yaleksandr89/docker-sql-lab/actions/workflows/sql-lab-check.yml/badge.svg)](https://github.com/yaleksandr89/docker-sql-lab/actions/workflows/sql-lab-check.yml)
 [![MySQL Check](https://github.com/yaleksandr89/docker-sql-lab/actions/workflows/mysql-check.yml/badge.svg)](https://github.com/yaleksandr89/docker-sql-lab/actions/workflows/mysql-check.yml)
 [![PostgreSQL Check](https://github.com/yaleksandr89/docker-sql-lab/actions/workflows/postgres-check.yml/badge.svg)](https://github.com/yaleksandr89/docker-sql-lab/actions/workflows/postgres-check.yml)
@@ -11,8 +15,8 @@
 ## Выберите язык
 
 | Русский | English | Español | 中文 | Français | Deutsch |
-| --- | --- | --- | --- | --- | --- |
-| **Выбран** | [English](docs/langs/README_en.md) | [Español](docs/langs/README_es.md) | [中文](docs/langs/README_zh.md) | [Français](docs/langs/README_fr.md) | [Deutsch](docs/langs/README_de.md) |
+|---|---|---|---|---|---|
+| **Выбран** | [English](docs/langs/en/README.md) | [Español](docs/langs/es/README.md) | [中文](docs/langs/zh/README.md) | [Français](docs/langs/fr/README.md) | [Deutsch](docs/langs/de/README.md) |
 
 Локальный Docker Compose-стенд для практики SQL и знакомства с MySQL и
 PostgreSQL. Каждую СУБД можно запускать отдельно или обе вместе. Компактная
@@ -44,7 +48,7 @@ Adminer или другой клиент MySQL/PostgreSQL.
 [`docker-compose.yml`](docker-compose.yml).
 
 <details>
-<summary>⚠️ Важно: это учебное окружение</summary>
+<summary>Важно: это учебное окружение</summary>
 
 Проект не является готовым шаблоном для промышленной эксплуатации. Для
 внешнего использования нужны отдельные решения по учётным данным, публикации
@@ -64,6 +68,23 @@ Adminer или другой клиент MySQL/PostgreSQL.
 - Проверки конфигурации и доступа, импорт доверенных SQL-файлов и команды
   очистки и переинициализации, удаляющие данные,
   собраны в [`Makefile`](Makefile).
+
+## Архитектура и структура стенда
+
+```mermaid
+flowchart TD
+    A["SQL-клиент на хосте"] -->|3306| D["MySQL (mysql)"]
+    A -->|5432| E["PostgreSQL (postgres)"]
+    B["Браузер"] -->|8081| C["Adminer (профиль ui)"]
+    C --> D
+    C --> E
+```
+
+Порты по умолчанию: `3306`, `5432`, `8081`.
+
+MySQL и PostgreSQL имеют отдельные каталоги данных, инициализации и учебных баз. Adminer работает внутри сети Compose; публикация портов на хосте по умолчанию ограничена loopback.
+
+[Базы и учебные данные](docs/langs/ru/reference/databases.md).
 
 ## Требования
 
@@ -93,7 +114,7 @@ make up
 `http://127.0.0.1:8081`.
 
 Подробно о запуске, подключениях и учётных данных:
-[Начало работы](docs/langs/ru/getting-started.md).
+[Начало работы](docs/langs/ru/guides/getting-started.md).
 
 ### Нужны готовые учебные данные?
 
@@ -117,7 +138,7 @@ make up
 > одноразового учебного стенда без ценных изменений она не обязательна.
 
 <details>
-<summary>📦 Стенд уже запускался: добавить или повторно использовать учебные базы</summary>
+<summary>Стенд уже запускался: добавить или повторно использовать учебные базы</summary>
 
 **Уже инициализировано без учебных баз.** Обычный `make up` не применит новые
 файлы инициализации или учебных баз. Сначала сохраните важные данные, затем
@@ -135,7 +156,7 @@ make up
 
 </details>
 
-Подробнее: [Базы и учебные данные](docs/langs/ru/databases.md).
+Подробнее: [Базы и учебные данные](docs/langs/ru/reference/databases.md).
 
 ## Режимы запуска
 
@@ -161,8 +182,8 @@ make up
 | PostgreSQL | `demo` | `pagila`, `chinook` |
 
 Имена необязательных баз действительны только после их фактической инициализации.
-Подробности: [запуск и подключения](docs/langs/ru/getting-started.md) ·
-[базы и учебные данные](docs/langs/ru/databases.md).
+Подробности: [запуск и подключения](docs/langs/ru/guides/getting-started.md) ·
+[базы и учебные данные](docs/langs/ru/reference/databases.md).
 
 ## Кратко об учётных данных
 
@@ -189,7 +210,9 @@ make test-storage-paths
 
 После запуска `make check` проверяет `demo` и доступ `DB_USER`, а
 `make test-sql-imports` — публичные цели импорта доверенных SQL-файлов. Порядок
-и ограничения: [Проверки и эксплуатация](docs/langs/ru/operations.md).
+и ограничения: [Проверки и эксплуатация](docs/langs/ru/guides/operations.md).
+
+CI проверяет MySQL, PostgreSQL и совместную работу стенда при push и pull request в `master`; каждый workflow можно запустить вручную через Actions.
 
 ## Безопасность и жизненный цикл
 
@@ -209,9 +232,9 @@ make test-storage-paths
   `CONFIRM=1`.
 
 Безопасные последовательности:
-[Проверки и эксплуатация](docs/langs/ru/operations.md).
+[Проверки и эксплуатация](docs/langs/ru/guides/operations.md).
 При ошибках сначала соберите диагностику:
-[Диагностика](docs/langs/ru/troubleshooting.md).
+[Диагностика](docs/langs/ru/guides/troubleshooting.md).
 
 ## Лицензии учебных данных
 
@@ -219,6 +242,10 @@ make test-storage-paths
 авторских правах и лицензиях исходных проектов. Происхождение, закреплённые
 ревизии, сведения о целостности и тексты лицензий приведены в
 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
+
+## Участие в разработке
+
+[Участие в разработке](.github/CONTRIBUTING.md).
 
 ---
 
