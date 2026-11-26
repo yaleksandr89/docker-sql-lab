@@ -54,7 +54,7 @@ credentials、网络暴露、存储、备份与运维方案。
 
 </details>
 
-## 主要功能
+## 功能
 
 - MySQL 与 PostgreSQL 可单独运行，也可同时运行。
 - 每种数据库都有必需的 `demo`，并包含相同的 seed rows。
@@ -83,8 +83,9 @@ MySQL 与 PostgreSQL 分别使用独立的数据、初始化和样本目录。Ad
 
 ## 要求
 
-1. Docker Engine 或带有 Docker Compose v2 的 Docker Desktop。
-2. GNU Make、Bash 以及脚本使用的基础 Unix CLI 工具。
+1. Git.
+2. Docker Engine 或带有 Docker Compose v2 的 Docker Desktop。
+3. GNU Make、Bash 以及脚本使用的基础 Unix CLI 工具。
 
 推荐环境：Linux；装有 Docker Desktop 的 macOS；Docker Desktop +
 WSL2 的 Windows。所有命令都从仓库根目录执行。项目默认分支为
@@ -93,6 +94,8 @@ WSL2 的 Windows。所有命令都从仓库根目录执行。项目默认分支�
 ## 快速开始
 
 ```bash
+git clone https://github.com/yaleksandr89/docker-sql-lab.git
+cd docker-sql-lab
 make init
 make up
 ```
@@ -221,20 +224,21 @@ CI 在推送到 `master` 或向其提交 pull request 时检查 MySQL、PostgreS
 revision、完整性信息与许可证文本见
 [`THIRD_PARTY_NOTICES.md`](../../../THIRD_PARTY_NOTICES.md)。
 
-## 参与贡献
+## 文档
 
-[参与贡献](CONTRIBUTING.md).
+- [入门](guides/getting-started.md)
+- [数据库与 samples](reference/databases.md)
+- [检查与运维](guides/operations.md)
+- [诊断与故障排除](guides/troubleshooting.md)
+- [参与贡献](CONTRIBUTING.md)
+
+## 反馈
+
+- 可复现的错误：[GitHub Issues](https://github.com/yaleksandr89/docker-sql-lab/issues)。
+- 问题和想法：[GitHub Discussions](https://github.com/yaleksandr89/docker-sql-lab/discussions)。
 
 ---
 
 <p align="center">
-  <a href="https://yaleksandr89.github.io/" title="yaleksandr89.github.io">
-    <img
-      src="../../assets/ya-logo-dark-50px.png"
-      alt="YA"
-      width="32"
-    >
-  </a>
-  <br>
-  <a href="https://yaleksandr89.github.io/">yaleksandr89.github.io</a>
+  如果这个项目对你有帮助，请在 GitHub 上点一颗 Star，让其他开发者更容易找到它。
 </p>

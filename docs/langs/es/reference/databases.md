@@ -2,7 +2,7 @@
 
 [Volver al README](../README.md)
 
-## Idioma
+## Elegir idioma
 
 | Русский | English | Español | 中文 | Français | Deutsch |
 |---|---|---|---|---|---|

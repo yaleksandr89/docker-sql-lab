@@ -8,7 +8,7 @@
 
 ## 开始之前
 
-可复现的错误请通过 GitHub Issues 报告；问题与建议先和所有者讨论。不要公开密码、真实数据或漏洞细节。
+可复现的错误请通过 [GitHub Issues](https://github.com/yaleksandr89/docker-sql-lab/issues) 报告；问题与建议请在 [GitHub Discussions](https://github.com/yaleksandr89/docker-sql-lab/discussions) 中讨论。重大变更需先与所有者商定。不要公开密码、真实数据或漏洞细节。
 
 ## 变更边界
 
@@ -31,3 +31,5 @@ make test-storage-paths
 ## Pull Request
 
 从 `master` 创建主题分支，并提交一个逻辑完整的签名 commit。使用带俄语描述的 Conventional Commits，例如 `docs: уточнить порядок запуска`。在 PR 中说明变更、数据与安全影响、实际执行的检查和文档变更。同步全部六种语言；合并前须通过三个 CI 工作流。
+
+[作者网站](https://yaleksandr89.github.io/)

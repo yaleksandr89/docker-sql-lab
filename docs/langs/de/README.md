@@ -12,7 +12,7 @@
 
 ![Docker SQL Lab — lokale MySQL- und PostgreSQL-Umgebung](../../assets/docker-sql-lab-cover.png)
 
-## Sprache auswählen
+## Sprache wählen
 
 | Русский | English | Español | 中文 | Français | Deutsch |
 |---|---|---|---|---|---|
@@ -56,7 +56,7 @@ Betrieb nötig.
 
 </details>
 
-## Hauptfunktionen
+## Funktionen
 
 - MySQL und PostgreSQL laufen einzeln oder gemeinsam.
 - Jedes DBMS hat eine obligatorische `demo` mit denselben Seed-Datensätzen.
@@ -85,8 +85,9 @@ MySQL und PostgreSQL haben getrennte Daten-, Initialisierungs- und Sample-Verzei
 
 ## Voraussetzungen
 
-1. Docker Engine oder Docker Desktop mit Docker Compose v2.
-2. GNU Make, Bash und die von den Skripten verwendeten Unix-CLI-Basiswerkzeuge.
+1. Git.
+2. Docker Engine oder Docker Desktop mit Docker Compose v2.
+3. GNU Make, Bash und die von den Skripten verwendeten Unix-CLI-Basiswerkzeuge.
 
 Empfohlen: Linux; macOS mit Docker Desktop; Windows mit Docker Desktop und
 WSL2. Befehle werden im Repository-Stamm ausgeführt. Der Standardbranch ist
@@ -95,6 +96,8 @@ WSL2. Befehle werden im Repository-Stamm ausgeführt. Der Standardbranch ist
 ## Schnellstart
 
 ```bash
+git clone https://github.com/yaleksandr89/docker-sql-lab.git
+cd docker-sql-lab
 make init
 make up
 ```
@@ -228,20 +231,21 @@ Optionale Datensätze behalten Lizenzen und Hinweise ihrer Upstream-Projekte.
 Herkunft, festgelegte Revisionen, Integrität und Lizenztexte stehen in
 [`THIRD_PARTY_NOTICES.md`](../../../THIRD_PARTY_NOTICES.md).
 
-## Mitwirken
+## Dokumentation
 
-[Mitwirken](CONTRIBUTING.md).
+- [Erste Schritte](guides/getting-started.md)
+- [Datenbanken und Samples](reference/databases.md)
+- [Prüfungen und Betrieb](guides/operations.md)
+- [Diagnose und Fehlerbehebung](guides/troubleshooting.md)
+- [Mitwirken](CONTRIBUTING.md)
+
+## Feedback
+
+- Reproduzierbare Fehler: [GitHub Issues](https://github.com/yaleksandr89/docker-sql-lab/issues).
+- Fragen und Ideen: [GitHub Discussions](https://github.com/yaleksandr89/docker-sql-lab/discussions).
 
 ---
 
 <p align="center">
-  <a href="https://yaleksandr89.github.io/" title="yaleksandr89.github.io">
-    <img
-      src="../../assets/ya-logo-dark-50px.png"
-      alt="YA"
-      width="32"
-    >
-  </a>
-  <br>
-  <a href="https://yaleksandr89.github.io/">yaleksandr89.github.io</a>
+  Wenn das Projekt hilfreich war, geben Sie ihm einen Stern auf GitHub, damit andere Entwickler es leichter finden können.
 </p>

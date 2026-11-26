@@ -10,9 +10,9 @@
 [![PostgreSQL Check](https://github.com/yaleksandr89/docker-sql-lab/actions/workflows/postgres-check.yml/badge.svg)](https://github.com/yaleksandr89/docker-sql-lab/actions/workflows/postgres-check.yml)
 [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](../../../LICENSE.md)
 
-![Docker SQL Lab](../../assets/docker-sql-lab-cover.png)
+![Docker SQL Lab — local MySQL and PostgreSQL lab](../../assets/docker-sql-lab-cover.png)
 
-## Choose a language
+## Choose language
 
 | Русский | English | Español | 中文 | Français | Deutsch |
 |---|---|---|---|---|---|
@@ -86,8 +86,9 @@ MySQL and PostgreSQL have separate data, initialization, and sample directories.
 
 ## Requirements
 
-1. Docker Engine or Docker Desktop with Docker Compose v2.
-2. GNU Make, Bash, and the basic Unix CLI utilities used by the scripts.
+1. Git.
+2. Docker Engine or Docker Desktop with Docker Compose v2.
+3. GNU Make, Bash, and the basic Unix CLI utilities used by the scripts.
 
 Recommended environments: Linux; macOS with Docker Desktop; Windows with
 Docker Desktop and WSL2. Run commands from the repository root. The project's
@@ -96,6 +97,8 @@ default branch is `master`.
 ## Quick start
 
 ```bash
+git clone https://github.com/yaleksandr89/docker-sql-lab.git
+cd docker-sql-lab
 make init
 make up
 ```
@@ -230,20 +233,21 @@ projects. Provenance, pinned revisions, integrity information, and license
 texts are in
 [`THIRD_PARTY_NOTICES.md`](../../../THIRD_PARTY_NOTICES.md).
 
-## Contributing
+## Documentation
 
-[Contributing](CONTRIBUTING.md).
+- [Getting started](guides/getting-started.md)
+- [Databases and samples](reference/databases.md)
+- [Validation and operations](guides/operations.md)
+- [Troubleshooting](guides/troubleshooting.md)
+- [Contributing](CONTRIBUTING.md)
+
+## Feedback
+
+- Reproducible bugs: [GitHub Issues](https://github.com/yaleksandr89/docker-sql-lab/issues).
+- Questions and ideas: [GitHub Discussions](https://github.com/yaleksandr89/docker-sql-lab/discussions).
 
 ---
 
 <p align="center">
-  <a href="https://yaleksandr89.github.io/" title="yaleksandr89.github.io">
-    <img
-      src="../../assets/ya-logo-dark-50px.png"
-      alt="YA"
-      width="32"
-    >
-  </a>
-  <br>
-  <a href="https://yaleksandr89.github.io/">yaleksandr89.github.io</a>
+  If the project was useful, give it a star on GitHub so other developers can find it more easily.
 </p>

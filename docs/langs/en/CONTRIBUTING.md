@@ -1,6 +1,6 @@
 # Contributing
 
-## Choose a language
+## Choose language
 
 | Русский | English | Español | 中文 | Français | Deutsch |
 |---|---|---|---|---|---|
@@ -8,7 +8,7 @@
 
 ## Before starting
 
-Use GitHub Issues for reproducible bugs; discuss questions and proposals with the owner first. Do not publish passwords, real data or vulnerability details.
+Report reproducible bugs through [GitHub Issues](https://github.com/yaleksandr89/docker-sql-lab/issues); discuss questions and ideas in [GitHub Discussions](https://github.com/yaleksandr89/docker-sql-lab/discussions). Agree on substantial changes with the owner first. Do not publish passwords, real data or vulnerability details.
 
 ## Change boundaries
 
@@ -31,3 +31,5 @@ For init, image, import or Adminer changes, run the relevant checks in an isolat
 ## Pull Request
 
 Create a topic branch from `master` and a single coherent signed commit. Use Conventional Commits with a Russian description, e.g. `docs: уточнить порядок запуска`. In the PR describe the change, its data/security impact, checks actually run and documentation changes. Synchronize all six locales; all three CI workflows must pass before merge.
+
+[Author’s website](https://yaleksandr89.github.io/)

@@ -1,6 +1,6 @@
 # Mitwirken
 
-## Sprache auswählen
+## Sprache wählen
 
 | Русский | English | Español | 中文 | Français | Deutsch |
 |---|---|---|---|---|---|
@@ -8,7 +8,7 @@
 
 ## Vor dem Start
 
-Verwenden Sie GitHub Issues für reproduzierbare Fehler; besprechen Sie Fragen und Vorschläge zunächst mit dem Eigentümer. Veröffentlichen Sie keine Passwörter, echten Daten oder Schwachstellendetails.
+Melden Sie reproduzierbare Fehler über [GitHub Issues](https://github.com/yaleksandr89/docker-sql-lab/issues); besprechen Sie Fragen und Ideen in [GitHub Discussions](https://github.com/yaleksandr89/docker-sql-lab/discussions). Stimmen Sie wesentliche Änderungen vorher mit dem Eigentümer ab. Veröffentlichen Sie keine Passwörter, echten Daten oder Schwachstellendetails.
 
 ## Änderungsgrenzen
 
@@ -31,3 +31,5 @@ Führen Sie bei Änderungen an Init, Images, Importen oder Adminer die relevante
 ## Pull Request
 
 Erstellen Sie einen Themenbranch von `master` und einen logisch zusammenhängenden signierten Commit. Verwenden Sie Conventional Commits mit russischer Beschreibung, etwa `docs: уточнить порядок запуска`. Beschreiben Sie Änderung, Daten- und Sicherheitsauswirkungen, tatsächlich ausgeführte Prüfungen und Dokumentationsänderungen. Synchronisieren Sie alle sechs Sprachen; alle drei CI-Workflows müssen vor dem Merge erfolgreich sein.
+
+[Website des Autors](https://yaleksandr89.github.io/)

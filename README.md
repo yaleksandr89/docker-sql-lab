@@ -56,7 +56,7 @@ Adminer или другой клиент MySQL/PostgreSQL.
 
 </details>
 
-## Основные возможности
+## Возможности
 
 - MySQL и PostgreSQL работают независимо или одновременно.
 - Обязательная `demo` в каждой СУБД содержит одинаковые начальные записи.
@@ -69,7 +69,7 @@ Adminer или другой клиент MySQL/PostgreSQL.
   очистки и переинициализации, удаляющие данные,
   собраны в [`Makefile`](Makefile).
 
-## Архитектура и структура стенда
+## Архитектура и структура проекта
 
 ```mermaid
 flowchart TD
@@ -88,8 +88,9 @@ MySQL и PostgreSQL имеют отдельные каталоги данных,
 
 ## Требования
 
-1. Docker Engine или Docker Desktop с Docker Compose v2.
-2. GNU Make, Bash и базовые утилиты командной строки Unix, используемые
+1. Git.
+2. Docker Engine или Docker Desktop с Docker Compose v2.
+3. GNU Make, Bash и базовые утилиты командной строки Unix, используемые
    сценариями.
 
 Рекомендуемая среда: Linux; macOS с Docker Desktop; Windows с Docker Desktop
@@ -99,6 +100,8 @@ MySQL и PostgreSQL имеют отдельные каталоги данных,
 ## Быстрый старт
 
 ```bash
+git clone https://github.com/yaleksandr89/docker-sql-lab.git
+cd docker-sql-lab
 make init
 make up
 ```
@@ -243,20 +246,21 @@ CI проверяет MySQL, PostgreSQL и совместную работу с�
 ревизии, сведения о целостности и тексты лицензий приведены в
 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
 
-## Участие в разработке
+## Документация
 
-[Участие в разработке](.github/CONTRIBUTING.md).
+- [Начало работы](docs/langs/ru/guides/getting-started.md)
+- [Базы и учебные данные](docs/langs/ru/reference/databases.md)
+- [Проверки и эксплуатация](docs/langs/ru/guides/operations.md)
+- [Диагностика](docs/langs/ru/guides/troubleshooting.md)
+- [Участие в разработке](.github/CONTRIBUTING.md)
+
+## Обратная связь
+
+- Воспроизводимые ошибки — [GitHub Issues](https://github.com/yaleksandr89/docker-sql-lab/issues).
+- Вопросы и идеи — [GitHub Discussions](https://github.com/yaleksandr89/docker-sql-lab/discussions).
 
 ---
 
 <p align="center">
-  <a href="https://yaleksandr89.github.io/" title="yaleksandr89.github.io">
-    <img
-      src="docs/assets/ya-logo-dark-50px.png"
-      alt="YA"
-      width="32"
-    >
-  </a>
-  <br>
-  <a href="https://yaleksandr89.github.io/">yaleksandr89.github.io</a>
+  Если пакет оказался полезен, поставьте звезду на GitHub — так его будет проще найти другим разработчикам. 🤘
 </p>
