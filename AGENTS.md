@@ -1,0 +1,26 @@
+# AGENTS.md
+
+## Product and architecture
+
+SQL Lab is a released local Docker Compose training environment, not a PHP package or a production deployment. Preserve independent MySQL and PostgreSQL startup, optional Adminer (`ui` profile), mandatory `demo` databases, separate training/admin credentials, and optional Sakila, Pagila and Chinook datasets. `Makefile` is the public host-side command interface; `docker-compose.yml` describes services, `initdb/` owns database initialization, `scripts/` owns validation/tests, and `adminer/plugins-enabled/` integrates with the upstream UI. Do not break documented Make targets, configuration, data or access contracts without an owner decision and migration plan. No framework, Composer, unrelated service, storage redesign or automatic sample repair.
+
+## Code and dependencies
+
+- Follow `.editorconfig`: UTF-8, LF, Make recipe tabs, YAML two spaces, Bash/SQL four spaces; retain existing script executability and shell dialect. Quote shell expansions and use explicit failures. Preserve strict Bash error handling and do not pipe potentially long producer output into early-exit `grep -q` or `head` under `pipefail`.
+- PHP is limited to Adminer plugins. Preserve the upstream plugin-loading contract; use PHP-FIG PER Coding Style 3.1 and PSR-1 for first-party PHP, explicit types where compatible, English identifiers and meaningful comments/PHPDoc with RU followed by EN; do not introduce a separate PHP runtime or dependency manager. Keep existing Russian shell/Make comments and SQL identifiers.
+- Verify exact official image versions, runtime compatibility, upstream maintenance and security before changing pins. No unrelated upgrades or new dependencies. Preserve upstream sample provenance, fixed Git revisions and Git blob integrity checks, Sakila license checks and `THIRD_PARTY_NOTICES.md`. Do not commit downloaded samples or alter license terms. Never add Codecov.
+
+## Security and runtime
+
+- Default publication is loopback only; preserve network boundaries and distinct `DB_USER` and administrative roles. `.docker.env` is trusted local configuration executed by Bash, not untrusted input; never source a file from an untrusted location or disclose its real credentials. Use synthetic values for tests.
+- SQL import accepts trusted plain SQL into an existing selected database as the training user; it is not a sandbox and may partially execute. Preserve access/ownership checks, explicit failures and the distinction between MySQL-only `dump`/`restore` and PostgreSQL operations. Optional samples are loaded only during initial setup; do not silently overwrite existing data or repair partial samples.
+- Before any write-producing runtime command, inspect entrypoint, effective user, ownership, resolved Compose project, actual mounts, ports and DB identity. Use a disposable checkout with independent managed paths, project name and ports; never operate on the owner's live databases. `clean-*` and `reinit-*` require exact `CONFIRM=1`, validated paths strictly under the project roots and explicit scope. No broad delete, chmod/chown or production operation.
+
+## Checks and docs
+
+- For affected shell/PHP files run `bash -n`/`php -l`; run `make test-storage-paths` for managed-path regressions. In a safe disposable checkout, `make check-env`, `make config`, `make up-no-ui`, `make check`, `make test-sql-imports` and `make down` verify the integrated lab. Relevant isolated startup/sample and Adminer checks are covered by `mysql-check`, `postgres-check` and `sql-lab-check`. Preserve meaningful assertions and distinguish PASS, FAIL, SKIPPED and NOT VERIFIED. Never weaken checks to obtain green CI.
+- Root `README.md` and `.github/CONTRIBUTING.md` are Russian canon; thematic pages under `docs/langs/ru/`, localized README/CONTRIBUTING and matching guides/reference under `docs/langs/en|es|zh|fr|de/`. Preserve practical examples, explicit anchors, safety warnings, screencasts, assets and third-party notices. Keep the same reusable README blocks in all six locales: Source → stack → all three CI badges → license, existing cover with localized alt text, language selector, self-contained quick start, compact Mermaid overview, documentation navigation, GitHub Issues and Discussions feedback, and a centered final GitHub-star CTA without emoji. Keep Mermaid topology consistent, omit emoji, validate relative paths/anchors, and check actual rendered GitHub diagrams. Do not change owner-controlled LICENSE/SECURITY/FUNDING policy without approval.
+
+## Work and Git
+
+Read before writing, keep one coherent approved scope with an exact allowlist, and triage security impact. Preserve unrelated user changes; stop for new product, security, data or dependency decisions. Review the full diff and run `git diff --check` (and `git diff --cached --check` for staged changes), relevant checks and final Git state before handoff. Remote policy: `READ_ONLY_FOR_AI`. No commit, push, PR creation/merge, rebase, reset, restore, clean, stash, force, branch/tag deletion, release or production changes by agents without explicit permission. Owner creates a signed tag on the exact verified merge SHA after green CI; independently verify tag target/signature before release.

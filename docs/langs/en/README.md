@@ -1,0 +1,253 @@
+# Docker SQL Lab
+
+[![Source Code](https://img.shields.io/badge/source-yaleksandr89%2Fdocker--sql--lab-blue.svg?style=flat-square)](https://github.com/yaleksandr89/docker-sql-lab)
+[![MySQL](https://img.shields.io/badge/MySQL-9.7-4479A1.svg?style=flat-square&logo=mysql&logoColor=white)](https://www.mysql.com/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-18-4169E1.svg?style=flat-square&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Adminer](https://img.shields.io/badge/Adminer-5.4-34567C.svg?style=flat-square)](https://www.adminer.org/)
+[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED.svg?style=flat-square&logo=docker&logoColor=white)](https://www.docker.com/)
+[![SQL Lab Check](https://github.com/yaleksandr89/docker-sql-lab/actions/workflows/sql-lab-check.yml/badge.svg)](https://github.com/yaleksandr89/docker-sql-lab/actions/workflows/sql-lab-check.yml)
+[![MySQL Check](https://github.com/yaleksandr89/docker-sql-lab/actions/workflows/mysql-check.yml/badge.svg)](https://github.com/yaleksandr89/docker-sql-lab/actions/workflows/mysql-check.yml)
+[![PostgreSQL Check](https://github.com/yaleksandr89/docker-sql-lab/actions/workflows/postgres-check.yml/badge.svg)](https://github.com/yaleksandr89/docker-sql-lab/actions/workflows/postgres-check.yml)
+[![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](../../../LICENSE.md)
+
+![Docker SQL Lab — local MySQL and PostgreSQL lab](../../assets/docker-sql-lab-cover.png)
+
+## Choose language
+
+| Русский | English | Español | 中文 | Français | Deutsch |
+|---|---|---|---|---|---|
+| [Русский](../../../README.md) | **Selected** | [Español](../es/README.md) | [中文](../zh/README.md) | [Français](../fr/README.md) | [Deutsch](../de/README.md) |
+
+A local Docker Compose lab for practicing SQL and exploring and comparing
+MySQL and PostgreSQL. Run either DBMS independently or both together. A compact
+`demo` database is created automatically, while optional Sakila, Pagila, and
+Chinook datasets provide ready-to-query training data. Enable Adminer only
+when you need it.
+
+## Screencasts
+
+The recordings use PhpStorm. DataGrip, DBeaver, Adminer, or another
+MySQL/PostgreSQL client will work instead. The screencasts are recorded in Russian.
+
+| Scenario | Yandex Disk | Google Drive | What it shows |
+|---|---|---|---|
+| First start with required `demo`, then add training databases | [Watch](https://disk.yandex.ru/i/Kj4TcMSBuIDVeA "docker-sql-lab-demo-then-training-databases.mp4") | [Watch](https://drive.google.com/file/d/1HzYWbMuBEobXlbGQYNfHYVAq95TLqEPf/view?usp=sharing "docker-sql-lab-demo-then-training-databases.mp4") | Start MySQL and PostgreSQL with required `demo`; check them; prepare Sakila, Pagila, and Chinook; confirm reinitialization; check again and run SQL queries. |
+| First start with training databases prepared in advance | [Watch](https://disk.yandex.ru/i/nFgJZto8agbdWw "docker-sql-lab-training-databases-first-start.mp4") | [Watch](https://drive.google.com/file/d/1nKiGrJ4QINLCQcRk-k6vfTakpWsw-JS7/view?usp=sharing "docker-sql-lab-training-databases-first-start.mp4") | Prepare Sakila, Pagila, and Chinook before the first start; initialize required `demo` and the training databases together; check access and run SQL queries. |
+
+## Stack
+
+- MySQL 9.7.1 LTS
+- PostgreSQL 18.4
+- Adminer 5.4.2 Docker Official Image
+- Docker Compose v2
+- GNU Make and Bash for project commands and initialization scripts
+
+Pinned defaults are defined in
+[`.docker.env.example`](../../../.docker.env.example); `make init` creates the
+local `.docker.env` from it. Services are defined in
+[`docker-compose.yml`](../../../docker-compose.yml).
+
+<details>
+<summary>Important: this is a training environment</summary>
+
+This project is not a production-ready template. External use requires
+separate decisions about credentials, network exposure, storage, backups, and
+operations.
+
+</details>
+
+## Features
+
+- MySQL and PostgreSQL run independently or together.
+- A required `demo` database in each DBMS contains equivalent seed rows.
+- Optional Sakila and Chinook are available for MySQL; Pagila and Chinook for
+  PostgreSQL.
+- Adminer is a separate optional UI shared by both DBMSs.
+- Each DBMS has separate bind-mounted data, init, and sample directories.
+- Configuration and access checks, trusted SQL imports, and destructive
+  commands are collected in the [`Makefile`](../../../Makefile).
+
+## Architecture and project structure
+
+```mermaid
+flowchart TD
+    A["Host SQL client"] -->|3306| D["MySQL (mysql)"]
+    A -->|5432| E["PostgreSQL (postgres)"]
+    B["Browser"] -->|8081| C["Adminer (ui profile)"]
+    C --> D
+    C --> E
+```
+
+Default host ports: `3306`, `5432`, `8081`.
+
+MySQL and PostgreSQL have separate data, initialization, and sample directories. Adminer uses the Compose network; published host ports bind to loopback by default.
+
+[Databases and samples](reference/databases.md).
+
+## Requirements
+
+1. Git.
+2. Docker Engine or Docker Desktop with Docker Compose v2.
+3. GNU Make, Bash, and the basic Unix CLI utilities used by the scripts.
+
+Recommended environments: Linux; macOS with Docker Desktop; Windows with
+Docker Desktop and WSL2. Run commands from the repository root. The project's
+default branch is `master`.
+
+## Quick start
+
+```bash
+git clone https://github.com/yaleksandr89/docker-sql-lab.git
+cd docker-sql-lab
+make init
+make up
+```
+
+`make init` creates the local `.docker.env` from the tracked
+[`.docker.env.example`](../../../.docker.env.example), validates managed paths,
+and creates working directories. On the first container start, the official
+entrypoints initialize both DBMSs. Even without optional samples, you get
+working MySQL and PostgreSQL instances with the required `demo` database and
+seed rows.
+
+`make up` starts MySQL, PostgreSQL, and Adminer; `make up-no-ui` starts both
+DBMSs without Adminer. With the defaults, Adminer is available at
+`http://127.0.0.1:8081`.
+
+For startup modes, connections, and credentials, see
+[Getting started](guides/getting-started.md).
+
+### Want ready-made training data?
+
+Optional samples are not required: `demo` is always created; MySQL supports Sakila and Chinook, while PostgreSQL supports Pagila and Chinook.
+
+**First start with empty data directories**
+
+```bash
+make init
+make samples-mysql
+make samples-postgres
+make up
+```
+
+Prepare samples before the first initialization; the official entrypoints load them alongside `demo`.
+
+> **Warning:** reinitialization deletes the selected DBMS data. Back up only
+> custom data you need to keep; a one-off lab with no valuable changes needs no backup.
+
+<details>
+<summary>The lab has run before: add or reuse samples</summary>
+
+**Initialized without samples.** A regular `make up` does not apply new init/sample files. If you need to preserve important data, back it up, then use the appropriate option:
+
+- MySQL: `make samples-mysql`, then `make reinit-mysql CONFIRM=1`.
+- PostgreSQL: `make samples-postgres`, then `make reinit-postgres CONFIRM=1`.
+- Both DBMSs: `make samples-mysql`, `make samples-postgres`, then `make reinit-all CONFIRM=1`.
+
+> **Warning:** `reinit-*` deletes the selected DBMS data and runs only with the exact `CONFIRM=1`.
+
+**Samples already installed.** Use the regular `make up` or a selected `make up-*`: no repeated download or reinitialization is needed, and databases persist in bind-mounted storage.
+
+</details>
+
+Details: [Databases and samples](reference/databases.md).
+
+## Startup modes
+
+| Command | MySQL | PostgreSQL | Adminer |
+|---|---|---|---|
+| `make up` | Starts | Starts | Starts |
+| `make up-no-ui` | Starts | Starts | Stops |
+| `make up-mysql` | Starts | Does not start | Does not start |
+| `make up-postgres` | Does not start | Starts | Does not start |
+
+A single-DBMS command does not stop the other running DBMS; Adminer is managed
+separately. The complete target list is in the [`Makefile`](../../../Makefile).
+
+## Connections and available databases
+
+Inside the Compose network, Adminer uses `mysql` and `postgres`. Host clients
+use `127.0.0.1` with the configured `MYSQL_PORT` or `POSTGRES_PORT`. Sign in
+for routine work with `DB_USER` and `DB_PASSWORD`.
+
+| DBMS | Always available | After optional sample initialization |
+|---|---|---|
+| MySQL | `demo` | `sakila`, `chinook` |
+| PostgreSQL | `demo` | `pagila`, `chinook` |
+
+Optional database names are valid only after actual initialization. Details:
+[startup and connections](guides/getting-started.md) ·
+[databases and samples](reference/databases.md).
+
+## Credentials at a glance
+
+| Purpose | User | Password |
+|---|---|---|
+| Shared training user | `DB_USER` | `DB_PASSWORD` |
+| MySQL administrator | `root` | `MYSQL_ROOT_PASSWORD` |
+| PostgreSQL superuser | `POSTGRES_SUPERUSER` | `POSTGRES_SUPERUSER_PASSWORD` |
+
+`POSTGRES_SUPERUSER` and `DB_USER` must be different roles. Use the training
+user for exercises, and replace example passwords before publishing services.
+
+## Databases and key checks
+
+Both `demo` databases contain an equivalent `demo_users` table with five rows.
+These static checks do not require running DBMSs:
+
+```bash
+make check-env
+make config
+make test-storage-paths
+```
+
+After startup, `make check` verifies `demo` and `DB_USER` access;
+`make test-sql-imports` exercises the public trusted import targets. For the
+safe order and limitations, see
+[Validation and operations](guides/operations.md).
+
+CI checks MySQL, PostgreSQL, and the integrated lab on pushes and pull requests to `master`; each workflow can also run manually from Actions.
+
+## Safety and lifecycle
+
+- `BIND_ADDRESS=127.0.0.1` publishes services only on loopback.
+- `BIND_ADDRESS=0.0.0.0` exposes them on every interface; configure the
+  firewall, strong credentials, and network trust first.
+- Official entrypoints run init only for an empty data directory.
+- `make mysql-import` and `make postgres-import` accept trusted SQL only.
+  This is not a sandbox: partial execution is possible without a guaranteed
+  full automatic rollback.
+  Review the SQL file and create a suitable backup before an important import.
+- Built-in `make dump` and `make restore` cover only MySQL `demo`; there is no
+  built-in PostgreSQL backup target.
+- Every `clean-*` and `reinit-*` command is destructive and requires the exact
+  `CONFIRM=1`.
+
+Safe sequences: [Validation and operations](guides/operations.md). For failures,
+collect evidence first: [Troubleshooting](guides/troubleshooting.md).
+
+## Training data licenses
+
+Optional sample datasets retain the licenses and notices of their upstream
+projects. Provenance, pinned revisions, integrity information, and license
+texts are in
+[`THIRD_PARTY_NOTICES.md`](../../../THIRD_PARTY_NOTICES.md).
+
+## Documentation
+
+- [Getting started](guides/getting-started.md)
+- [Databases and samples](reference/databases.md)
+- [Validation and operations](guides/operations.md)
+- [Troubleshooting](guides/troubleshooting.md)
+- [Contributing](CONTRIBUTING.md)
+
+## Feedback
+
+- Reproducible bugs: [GitHub Issues](https://github.com/yaleksandr89/docker-sql-lab/issues).
+- Questions and ideas: [GitHub Discussions](https://github.com/yaleksandr89/docker-sql-lab/discussions).
+
+---
+
+<p align="center">
+  If the project was useful, give it a star on GitHub so other developers can find it more easily.
+</p>
