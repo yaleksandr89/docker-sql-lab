@@ -10,6 +10,8 @@
 
 Melden Sie reproduzierbare Fehler über [GitHub Issues](https://github.com/yaleksandr89/docker-sql-lab/issues); besprechen Sie Fragen und Ideen in [GitHub Discussions](https://github.com/yaleksandr89/docker-sql-lab/discussions). Stimmen Sie wesentliche Änderungen vorher mit dem Eigentümer ab. Veröffentlichen Sie keine Passwörter, echten Daten oder Schwachstellendetails.
 
+Schwachstellen: [Sicherheitsrichtlinie](https://github.com/yaleksandr89/docker-sql-lab/blob/master/docs/langs/de/SECURITY.md).
+
 ## Änderungsgrenzen
 
 Erhalten Sie öffentliche Make-Befehle, getrennte DBMS, die obligatorische `demo`, optionale Samples und `DB_USER`-Rechte. Stimmen Sie Änderungen an Images, Schemas, Rechten, Netzwerkzugriff, Importen und destruktiven Operationen vorher ab. Committen Sie keine heruntergeladenen Drittanbieter-SQL-Dateien oder lokalen `.docker.env`-Dateien.

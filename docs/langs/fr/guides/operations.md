@@ -30,7 +30,7 @@ exigent `CONFIRM=1` exact.
 <details>
 <summary>Référence complète des targets Make publics</summary>
 
-`make help` affiche la liste concise.
+`make help` affiche l’aide bilingue (RU/EN).
 
 | Commande | Rôle |
 |---|---|

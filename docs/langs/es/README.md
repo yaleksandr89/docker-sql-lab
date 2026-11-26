@@ -239,9 +239,10 @@ upstream. Procedencia, revisiones fijadas, integridad y textos están en
 
 - Errores reproducibles: [GitHub Issues](https://github.com/yaleksandr89/docker-sql-lab/issues).
 - Preguntas e ideas: [GitHub Discussions](https://github.com/yaleksandr89/docker-sql-lab/discussions).
+- Vulnerabilidades: [política de seguridad](SECURITY.md).
 
 ---
 
 <p align="center">
-  Si el proyecto te resultó útil, dale una estrella en GitHub para que otros desarrolladores puedan encontrarlo más fácilmente.
+  Si el proyecto te resultó útil, dale una estrella en GitHub para que otros desarrolladores puedan encontrarlo más fácilmente. 🤘
 </p>

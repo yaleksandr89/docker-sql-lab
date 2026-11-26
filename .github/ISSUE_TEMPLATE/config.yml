@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Discussions / Обсуждения
+    url: https://github.com/yaleksandr89/docker-sql-lab/discussions
+    about: Ask questions and discuss ideas. / Задавайте вопросы и обсуждайте идеи.
+  - name: Getting started / Начало работы
+    url: https://github.com/yaleksandr89/docker-sql-lab/blob/master/docs/langs/ru/guides/getting-started.md
+    about: Local lab setup and database access. / Запуск локального стенда и подключение к СУБД.
+  - name: Security issue / Проблема безопасности
+    url: https://github.com/yaleksandr89/docker-sql-lab/security/policy
+    about: Do not publish sensitive details; read the security policy first. / Не публикуйте чувствительные детали; сначала прочитайте политику безопасности.

@@ -30,7 +30,7 @@ PostgreSQL。`clean-*` 与 `reinit-*` 是 destructive 操作，并要求精确
 <details>
 <summary>完整公共 Make targets 参考</summary>
 
-`make help` 显示简要命令列表。
+`make help` 显示俄语和英语双语命令帮助。
 
 | 命令 | 用途 |
 |---|---|

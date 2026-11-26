@@ -240,9 +240,10 @@ upstream. Provenance, révisions épinglées, intégrité et textes figurent dan
 
 - Bugs reproductibles : [GitHub Issues](https://github.com/yaleksandr89/docker-sql-lab/issues).
 - Questions et idées : [GitHub Discussions](https://github.com/yaleksandr89/docker-sql-lab/discussions).
+- Vulnérabilités : [politique de sécurité](SECURITY.md).
 
 ---
 
 <p align="center">
-  Si le projet vous a été utile, ajoutez-lui une étoile sur GitHub afin que d'autres développeurs puissent le trouver plus facilement.
+  Si le projet vous a été utile, ajoutez-lui une étoile sur GitHub afin que d'autres développeurs puissent le trouver plus facilement. 🤘
 </p>
