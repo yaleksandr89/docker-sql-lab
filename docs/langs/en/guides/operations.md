@@ -30,7 +30,7 @@ PostgreSQL. `clean-*` and `reinit-*` are destructive and require exact
 <details>
 <summary>Complete public Make target reference</summary>
 
-Run `make help` for the concise command list.
+Run `make help` for the bilingual command reference (RU/EN).
 
 | Command | Purpose |
 |---|---|

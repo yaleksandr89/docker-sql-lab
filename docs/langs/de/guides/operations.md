@@ -30,7 +30,7 @@ sind destruktiv und erfordern exakt `CONFIRM=1`.
 <details>
 <summary>Vollständige Referenz der öffentlichen Make targets</summary>
 
-`make help` zeigt die kompakte Liste.
+`make help` zeigt die zweisprachige Hilfe (RU/EN).
 
 | Befehl | Zweck |
 |---|---|

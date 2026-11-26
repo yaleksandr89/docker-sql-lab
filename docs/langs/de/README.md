@@ -243,9 +243,10 @@ Herkunft, festgelegte Revisionen, Integrität und Lizenztexte stehen in
 
 - Reproduzierbare Fehler: [GitHub Issues](https://github.com/yaleksandr89/docker-sql-lab/issues).
 - Fragen und Ideen: [GitHub Discussions](https://github.com/yaleksandr89/docker-sql-lab/discussions).
+- Schwachstellen: [Sicherheitsrichtlinie](SECURITY.md).
 
 ---
 
 <p align="center">
-  Wenn das Projekt hilfreich war, geben Sie ihm einen Stern auf GitHub, damit andere Entwickler es leichter finden können.
+  Wenn das Projekt hilfreich war, geben Sie ihm einen Stern auf GitHub, damit andere Entwickler es leichter finden können. 🤘
 </p>

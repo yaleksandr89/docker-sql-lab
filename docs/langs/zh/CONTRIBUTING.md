@@ -10,6 +10,8 @@
 
 可复现的错误请通过 [GitHub Issues](https://github.com/yaleksandr89/docker-sql-lab/issues) 报告；问题与建议请在 [GitHub Discussions](https://github.com/yaleksandr89/docker-sql-lab/discussions) 中讨论。重大变更需先与所有者商定。不要公开密码、真实数据或漏洞细节。
 
+漏洞：[安全政策](https://github.com/yaleksandr89/docker-sql-lab/blob/master/docs/langs/zh/SECURITY.md)。
+
 ## 变更边界
 
 保留公共 Make 命令、数据库服务隔离、必需的 `demo`、可选样本及 `DB_USER` 权限。镜像版本、数据库结构、权限、网络访问、导入和删除数据等变更需提前商定。不要将下载的第三方 SQL 或本地 `.docker.env` 提交到 Git。

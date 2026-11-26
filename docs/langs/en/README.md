@@ -245,9 +245,10 @@ texts are in
 
 - Reproducible bugs: [GitHub Issues](https://github.com/yaleksandr89/docker-sql-lab/issues).
 - Questions and ideas: [GitHub Discussions](https://github.com/yaleksandr89/docker-sql-lab/discussions).
+- Vulnerabilities: [security policy](SECURITY.md).
 
 ---
 
 <p align="center">
-  If the project was useful, give it a star on GitHub so other developers can find it more easily.
+  If the project was useful, give it a star on GitHub so other developers can find it more easily. 🤘
 </p>

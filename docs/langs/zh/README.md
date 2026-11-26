@@ -236,9 +236,10 @@ revision、完整性信息与许可证文本见
 
 - 可复现的错误：[GitHub Issues](https://github.com/yaleksandr89/docker-sql-lab/issues)。
 - 问题和想法：[GitHub Discussions](https://github.com/yaleksandr89/docker-sql-lab/discussions)。
+- 漏洞：[安全政策](SECURITY.md)。
 
 ---
 
 <p align="center">
-  如果这个项目对你有帮助，请在 GitHub 上点一颗 Star，让其他开发者更容易找到它。
+  如果这个项目对你有帮助，请在 GitHub 上点一颗 Star，让其他开发者更容易找到它。 🤘
 </p>

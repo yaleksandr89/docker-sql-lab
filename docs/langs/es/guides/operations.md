@@ -30,7 +30,7 @@ antes de un import importante. Los backups integrados solo cubren MySQL
 <details>
 <summary>Referencia completa de targets públicos de Make</summary>
 
-`make help` muestra la lista resumida.
+`make help` muestra la ayuda bilingüe (RU/EN).
 
 | Comando | Función |
 |---|---|
